@@ -44,15 +44,6 @@ fun HomeScreen(){
                     .height(150.dp),
                 contentScale = ContentScale.Fit
             )
-
-            Button(
-                onClick = {
-                    navController.navigate("HomeScreenPrueba")
-                }
-            ) {
-                Text("Click Aqui")
-            }
-
         }
     }
 }
