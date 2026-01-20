@@ -1,7 +1,9 @@
 package com.example.poolcontrol.ui.screen
+import android.text.LoginFilter
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -21,7 +23,10 @@ import com.example.poolcontrol.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(){
+
+fun HomeScreen(
+    onGoLogin: () -> Unit
+){
     Scaffold(
         topBar = {
             TopAppBar(title = { Text("PoolControl") })
@@ -44,12 +49,10 @@ fun HomeScreen(){
                     .height(150.dp),
                 contentScale = ContentScale.Fit
             )
-        }
+            Button(onClick = onGoLogin,
+                    modifier = Modifier
+                        .fillMaxWidth()
+            ){ Text (text = "al Home")}
     }
 }
-
-@Preview(showBackground = true)
-@Composable
-fun HomeScreenPreview(){
-    HomeScreen()
 }
