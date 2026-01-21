@@ -1,7 +1,9 @@
 package com.example.poolcontrol.ui.screen
 import android.R
 import android.net.wifi.hotspot2.pps.HomeSp
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,23 +11,35 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.poolcontrol.navigation.Route
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 
 @Composable
 
@@ -33,8 +47,12 @@ fun LoginScreen(
     onGoHome: () -> Unit,
     onGoRegister: () -> Unit,
     onGoLose: () -> Unit
-){
+) {
+
     val bg = MaterialTheme.colorScheme.surfaceVariant
+
+    var usuario by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
 
     //contenedor pantalla completa
     Box(
@@ -42,61 +60,53 @@ fun LoginScreen(
             .fillMaxSize()
             .background(bg) //color de fondo
             .padding(16.dp), // margenes interiores
-        contentAlignment = Alignment.Center
-    ){
+        contentAlignment = Alignment.TopCenter
+    ) {
         Column(
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(text = "Login",
-                     style = MaterialTheme.typography.headlineMedium,
-                     fontWeight = FontWeight.ExtraBold
-                )
-                //espacio blanco reservado por mi
-                Spacer(Modifier.width(8.dp))
-                AssistChip(
-                    onClick = {},
-                    label = {Text("Boton Navegacion")}
-                )
-            } //fin de la fila (Row)
-            Spacer(Modifier.width(16.dp))
+            Spacer(modifier = Modifier.height(30.dp))
+            Image(
+                painter = painterResource(id = com.example.poolcontrol.R.drawable.logo),
+                contentDescription = "Imagen app",
+                modifier = Modifier
+                    .width(150.dp)
+                    .height(150.dp)
+                    .clip(RoundedCornerShape(15.dp)),
+                contentScale = ContentScale.Crop
+            )
+            Text(text = "PoolControl",
+            modifier = Modifier.fillMaxWidth(),
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.headlineLarge,
+                fontWeight = FontWeight.Bold)
+            Text(text = "Control de acceso",
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.headlineSmall,)
 
-            //CARD ELEVADO (con sombra)
+            Spacer(modifier = Modifier.height(40.dp))
 
-            ElevatedCard(
-                modifier = Modifier.fillMaxWidth() //ocupe el tamaño de la columna
-            ) {
-                Column(
-                    modifier = Modifier.padding(14.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text (
-                        text = "Texto en login",
-                        style = MaterialTheme.typography.titleMedium,
-                        textAlign = TextAlign.Center
-                    )
-                    Spacer(Modifier.width(12.dp))
-                    Text(
-                        text = "Otro texto en distinto formato",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
+            OutlinedTextField(
+                value = usuario,
+                onValueChange = { usuario = it },
+                label = { Text (text = "Usuario") },
+                modifier = Modifier.fillMaxWidth()
+            )
+            OutlinedTextField(
+                value = password,
+                onValueChange = { password = it },
+                label = { Text (text = "Contraseña") },
+                modifier = Modifier.fillMaxWidth()
+            )
 
-                }
+
+
+
+
+            Spacer(modifier = Modifier.height(150.dp))
+                Button(onClick = onGoHome) { Text(text = "Iniciar Sesion") }
+                OutlinedButton(onClick = onGoRegister) { Text(text = "Registrar nuevo usuario") }
             }
-
-            //espacio
-            Spacer(Modifier.width(24.dp))
-            Row(
-               horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Button(onClick = onGoHome) { Text (text = "al Home")}
-                OutlinedButton(onClick = onGoRegister) {Text(text = "al registro") }
-            }
-
-
-
         }
     }
-}

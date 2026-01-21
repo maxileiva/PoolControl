@@ -31,7 +31,8 @@ fun AppTopBar(
   onOpenDrawer: () -> Unit, //abre menu desplegable
   onHome: () -> Unit,
   onLogin: () -> Unit,
-  onRegister: () -> Unit
+  onRegister: () -> Unit,
+  onAddReserva: () -> Unit
 ){
     //variable que recuerde el estado
     //del menu desplegable o del menu 3 puntos
@@ -46,7 +47,7 @@ fun AppTopBar(
         ),
         title = {
             Text(
-                text = "Menu Superior",
+                text = "Pool Control",
                 style = MaterialTheme.typography.titleLarge,
                 maxLines = 1, //cant lineas mostrar el texto
                 overflow = TextOverflow.Ellipsis //agrega ... si no se puede mostrar el texto completo

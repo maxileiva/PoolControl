@@ -23,9 +23,12 @@ class MainActivity : ComponentActivity() {
         setContent {
             PoolControlTheme {
                     HomeScreen(
-                        onGoLogin = {}
+
+                        onGoLogin = {},
+                        onGoAddReserva = {}
+
                     )
-                }
+            }
             }
         }
     }
