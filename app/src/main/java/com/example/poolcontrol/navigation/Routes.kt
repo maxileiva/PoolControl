@@ -10,5 +10,5 @@ sealed class Route(val path: String) {
     data object AddReserva : Route("addReserva")
     data object Perfil : Route("perfil")
     data object Consultar : Route("ConsultaReserva")
-    data object Confirmar : Route("ConfirmarReserva/{fecha}")
+    data object Confirmar : Route("ConfirmarReserva/{fecha}/{esAdmin}")
 }

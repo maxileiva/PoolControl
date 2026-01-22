@@ -36,16 +36,20 @@ import com.example.poolcontrol.navigation.Route
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import com.example.poolcontrol.ui.viewmodel.AuthViewModel
 
 @Composable
 
 fun LoginScreen(
     onGoRegister: () -> Unit,
-    onLoginClick: (String) -> Unit
+    onLoginClick: (String) -> Unit,
+    authViewModel: AuthViewModel
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -87,29 +91,49 @@ fun LoginScreen(
             )
 
             Spacer(modifier = Modifier.height(40.dp))
-
+// CAMPO EMAIL
             OutlinedTextField(
-                value = email,
-                onValueChange = { email = it },
-                label = { Text(text = "email") },
-                modifier = Modifier.fillMaxWidth()
+                value = authViewModel.email,
+                onValueChange = { authViewModel.email = it },
+                label = { Text("Email") },
+                modifier = Modifier.fillMaxWidth(),
+                isError = authViewModel.errorEmail != null && authViewModel.email.isNotEmpty(),
+                supportingText = {
+                    if (authViewModel.email.isNotEmpty()) {
+                        authViewModel.errorEmail?.let { mensaje ->
+                            Text(text = mensaje, color = MaterialTheme.colorScheme.error)
+                        }
+                    }
+                }
             )
+// CAMPO CONTRASEÑA
             OutlinedTextField(
-                value = password,
-                onValueChange = { password = it },
-                label = { Text(text = "Contraseña") },
-                modifier = Modifier.fillMaxWidth()
+                value = authViewModel.password,
+                onValueChange = { authViewModel.password = it },
+                label = { Text("Contraseña") },
+                modifier = Modifier.fillMaxWidth(),
+                visualTransformation = PasswordVisualTransformation(),
+                isError = authViewModel.errorPassword != null && authViewModel.password.isNotEmpty(),
+                supportingText = {
+                    if (authViewModel.password.isNotEmpty()) {
+                        authViewModel.errorPassword?.let { mensaje ->
+                            Text(text = mensaje, color = MaterialTheme.colorScheme.error)
+                        }
+                    }
+                }
             )
 
-            Spacer(modifier = Modifier.height(150.dp))
+            // BOTÓN LOGIN
             Button(
-                onClick = { onLoginClick(email) } // Enviamos el email escrito al NavGraph
+                onClick = { onLoginClick(authViewModel.email) },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = authViewModel.loginValido
             ) {
-                Text(text = "Iniciar Sesion")
+                Text("Ingresar")
             }
 
-            OutlinedButton(onClick = onGoRegister) {
-                Text(text = "Registrar nuevo usuario")
+            TextButton (onClick = onGoRegister) {
+                Text("¿No tienes cuenta? Regístrate")
             }
         }
     }

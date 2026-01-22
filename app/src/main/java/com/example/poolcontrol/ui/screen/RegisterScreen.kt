@@ -41,19 +41,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.poolcontrol.ui.viewmodel.AuthViewModel
 
 @Composable
 fun RegisterScreen(
     onGoLogin: () -> Unit,
-    onRegisterClick: (String) -> Unit // Cambiado para que coincida con el NavGraph
+    onRegisterClick: (String) -> Unit,
+    authViewModel: AuthViewModel = viewModel()
 ) {
     val bg = MaterialTheme.colorScheme.surfaceVariant
-
-    var email by remember { mutableStateOf("") }
-    var nombre by remember { mutableStateOf("") }
-    var apellido by remember { mutableStateOf("") }
-    var numero by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
 
     Box(
         modifier = Modifier
@@ -64,7 +62,7 @@ fun RegisterScreen(
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Spacer(modifier = Modifier.height(30.dp))
 
@@ -72,8 +70,8 @@ fun RegisterScreen(
                 painter = painterResource(id = com.example.poolcontrol.R.drawable.logo),
                 contentDescription = "Imagen app",
                 modifier = Modifier
-                    .width(150.dp)
-                    .height(150.dp)
+                    .width(120.dp)
+                    .height(120.dp)
                     .clip(RoundedCornerShape(15.dp)),
                 contentScale = ContentScale.Crop
             )
@@ -82,55 +80,82 @@ fun RegisterScreen(
                 text = "Crear Usuario",
                 modifier = Modifier.fillMaxWidth(),
                 textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.headlineLarge,
+                style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold
             )
 
-            Spacer(modifier = Modifier.height(10.dp))
-
-            // Campos de texto
+            // NOMBRE
             OutlinedTextField(
-                value = nombre,
-                onValueChange = { nombre = it },
+                value = authViewModel.nombre,
+                onValueChange = { authViewModel.nombre = it },
                 label = { Text(text = "Nombre") },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                isError = authViewModel.errorNombre != null && authViewModel.nombre.isNotEmpty(),
+                supportingText = {
+                    authViewModel.errorNombre?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+                }
             )
+
+            // CAMPO APELLIDO
             OutlinedTextField(
-                value = apellido,
-                onValueChange = { apellido = it },
+                value = authViewModel.apellido,
+                onValueChange = { authViewModel.apellido = it },
                 label = { Text(text = "Apellido") },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                isError = authViewModel.errorApellido != null && authViewModel.apellido.isNotEmpty(),
+                supportingText = {
+                    authViewModel.errorApellido?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+                }
             )
+
+            // CAMPO EMAIL
             OutlinedTextField(
-                value = email,
-                onValueChange = { email = it },
+                value = authViewModel.email,
+                onValueChange = { authViewModel.email = it },
                 label = { Text(text = "Email") },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                isError = authViewModel.errorEmail != null && authViewModel.email.isNotEmpty(),
+                supportingText = {
+                    authViewModel.errorEmail?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+                }
             )
+
+            // CAMPO CONTRASEÑA
             OutlinedTextField(
-                value = password,
-                onValueChange = { password = it },
+                value = authViewModel.password,
+                onValueChange = { authViewModel.password = it },
                 label = { Text(text = "Contraseña") },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                visualTransformation = PasswordVisualTransformation(),
+                isError = authViewModel.errorPassword != null && authViewModel.password.isNotEmpty(),
+                supportingText = {
+                    authViewModel.errorPassword?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+                }
             )
+
+            // CAMPO TELÉFONO
             OutlinedTextField(
-                value = numero,
-                onValueChange = { numero = it },
+                value = authViewModel.numero,
+                onValueChange = { authViewModel.numero = it },
                 label = { Text(text = "Número de teléfono") },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                isError = authViewModel.errorNumero != null && authViewModel.numero.isNotEmpty(),
+                supportingText = {
+                    authViewModel.errorNumero?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+                }
             )
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            // BOTÓN REGISTRAR: Ahora envía el email para decidir si va a Admin o Cliente
+            // BOTÓN REGISTRAR
             OutlinedButton(
-                onClick = { onRegisterClick(email) },
-                modifier = Modifier.fillMaxWidth()
+                onClick = { onRegisterClick(authViewModel.email) },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = authViewModel.formularioValido
             ) {
                 Text(text = "Registrar")
             }
 
-            // BOTÓN VOLVER: Te regresa al Login
             Button(
                 onClick = onGoLogin,
                 modifier = Modifier.fillMaxWidth()

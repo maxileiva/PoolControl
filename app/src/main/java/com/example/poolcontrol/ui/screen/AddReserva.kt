@@ -1,76 +1,46 @@
 package com.example.poolcontrol.ui.screen
 
-import android.health.connect.datatypes.units.BloodGlucose
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.awaitEachGesture
-import androidx.compose.foundation.gestures.awaitFirstDown
-import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.Button
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.input.pointer.PointerEventPass
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Popup
-import com.example.poolcontrol.navigation.Route
 import com.example.poolcontrol.ui.components.AppTopBar
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import androidx.compose.foundation.gestures.awaitEachGesture
-import androidx.compose.foundation.gestures.awaitFirstDown
-import androidx.compose.foundation.gestures.waitForUpOrCancellation
-import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DatePickerDefaults
-import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.Surface
-import androidx.compose.material3.TextButton
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.navigation.NavHostController
-import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddReserva(navController: NavHostController,
-               onBack: () -> Unit) {
-    // Color de fondo cian para toda la pantalla
+fun AddReserva(
+    navController: NavHostController,
+    onBack: () -> Unit,
+    esAdmin: Boolean = false
+) {
 
     val datePickerState = rememberDatePickerState()
     val bg = MaterialTheme.colorScheme.surfaceVariant
@@ -98,7 +68,6 @@ fun AddReserva(navController: NavHostController,
                 fontWeight = FontWeight.Bold
             )
 
-            // Tarjeta del Calendario (Gris con tus colores específicos)
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = Color(0xFF616161)),
@@ -115,7 +84,6 @@ fun AddReserva(navController: NavHostController,
                         dayContentColor = Color.White,
                         selectedDayContainerColor = Color.Red,
                         selectedDayContentColor = Color.White,
-                        // Añadimos estos para asegurar que los nombres de los días se vean
                         weekdayContentColor = Color.White,
                         todayContentColor = Color.White,
                         todayDateBorderColor = Color.Red
@@ -146,17 +114,14 @@ fun AddReserva(navController: NavHostController,
 
             Button(
                 onClick = {
-                    if (selectedDateText.isNotEmpty() && selectedDateText != "Seleccione una fecha") {
-                        // Reemplazamos los "/" por "-" para evitar que la navegación falle
-                        val fechaSegura = selectedDateText.replace("/", "-")
-                        navController.navigate("ConfirmarReserva/$fechaSegura")
-                    }
-                },
+                    val fechaSegura = selectedDateText.replace("/", "-")
+                    // Pasamos la fecha y el booleano esAdmin en la URL
+                    navController.navigate("ConfirmarReserva/$fechaSegura/$esAdmin")
+                    },
+
                 enabled = selectedDateText != "Seleccione una fecha",
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = if (selectedDateText != "Seleccione una fecha") Color(
-                        0xFF4CAF50
-                    ) else Color.Gray
+                    containerColor = if (selectedDateText != "Seleccione una fecha") Color(0xFF4CAF50) else Color.Gray
                 ),
                 modifier = Modifier
                     .fillMaxWidth()

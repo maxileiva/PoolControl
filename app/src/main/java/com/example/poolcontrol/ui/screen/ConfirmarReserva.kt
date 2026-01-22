@@ -19,26 +19,46 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.poolcontrol.R
 import com.example.poolcontrol.ui.components.AppTopBar
+// Importa tus validadores (asegúrate de que el package sea correcto)
+import com.example.poolcontrol.domain.validation.validateNameLettersOnly
+import com.example.poolcontrol.domain.validation.validatePhoneDigitsOnly
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConfirmarReserva(
-    fechaSeleccionada: String, // Recibimos la fecha de la pantalla anterior
+    fechaSeleccionada: String,
     onBack: () -> Unit,
     onConfirmar: () -> Unit
 ) {
     val bg = MaterialTheme.colorScheme.surfaceVariant
 
-    // Estados para los campos de texto
+    // ESTADOS MANUALES (Sin depender del ViewModel por ahora)
     var nombreCompleto by remember { mutableStateOf("") }
     var telefono by remember { mutableStateOf("") }
     var cantidadPersonas by remember { mutableStateOf("") }
 
-    // Lista de piscinas para el "carrusel" simple
+    // LÓGICA DE VALIDACIÓN
+    val errorNombre = validateNameLettersOnly(nombreCompleto)
+    val errorTelefono = validatePhoneDigitsOnly(telefono)
+
+    // Validación: Mínimo 10, Máximo 15
+    val errorCantidad = when {
+        cantidadPersonas.isBlank() -> "Ingrese cantidad"
+        cantidadPersonas.toIntOrNull() == null -> "Solo números"
+        cantidadPersonas.toInt() < 10 -> "El mínimo es de 10 personas"
+        else -> null
+    }
+
+    // El botón se habilita solo si todo está correcto
+    val formularioValido = errorNombre == null &&
+            errorTelefono == null &&
+            errorCantidad == null &&
+            nombreCompleto.isNotBlank()
+
+    // Lista de piscinas (Asegúrate de tener estas imágenes en tu carpeta res/drawable)
     val listaPiscinas = listOf(
-        Pair("Piscina Olímpica", R.drawable.logo), // Reemplaza con tus fotos reales
-        Pair("Piscina Familiar", R.drawable.logo),
-        Pair("Piscina VIP", R.drawable.logo)
+        Pair("Piscina Principal", R.drawable.piscina1),
+        Pair("Piscina Familia Pequeña", R.drawable.piscina2)
     )
     var piscinaSeleccionadaIndice by remember { mutableStateOf(0) }
 
@@ -61,7 +81,6 @@ fun ConfirmarReserva(
                 fontWeight = FontWeight.Bold
             )
 
-            // Resumen de la fecha traída
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = Color(0xFF616161))
@@ -75,45 +94,39 @@ fun ConfirmarReserva(
                 )
             }
 
-            // Carrusel de selección de piscina
+            // --- SELECTOR DE PISCINA ---
             Text(text = "Seleccione el Recinto", fontWeight = FontWeight.Bold)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Button(onClick = {
-                    if (piscinaSeleccionadaIndice > 0) piscinaSeleccionadaIndice--
-                }) { Text("<") }
-
+                Button(onClick = { if (piscinaSeleccionadaIndice > 0) piscinaSeleccionadaIndice-- }) { Text("<") }
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Image(
                         painter = painterResource(id = listaPiscinas[piscinaSeleccionadaIndice].second),
                         contentDescription = "Piscina",
-                        modifier = Modifier
-                            .size(150.dp)
-                            .clip(RoundedCornerShape(12.dp)),
+                        modifier = Modifier.size(150.dp).clip(RoundedCornerShape(12.dp)),
                         contentScale = ContentScale.Crop
                     )
-                    Text(
-                        text = listaPiscinas[piscinaSeleccionadaIndice].first,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
-                    )
+                    Text(text = listaPiscinas[piscinaSeleccionadaIndice].first, fontWeight = FontWeight.Bold)
                 }
-
-                Button(onClick = {
-                    if (piscinaSeleccionadaIndice < listaPiscinas.size - 1) piscinaSeleccionadaIndice++
-                }) { Text(">") }
+                Button(onClick = { if (piscinaSeleccionadaIndice < listaPiscinas.size - 1) piscinaSeleccionadaIndice++ }) { Text(">") }
             }
 
-            // Formulario
+            // --- CAMPOS DE TEXTO CON VALIDACIÓN ---
+
             OutlinedTextField(
                 value = nombreCompleto,
                 onValueChange = { nombreCompleto = it },
                 label = { Text("Nombre Completo") },
                 modifier = Modifier.fillMaxWidth(),
-                singleLine = true
+                isError = errorNombre != null && nombreCompleto.isNotEmpty(),
+                supportingText = {
+                    if (nombreCompleto.isNotEmpty()) {
+                        errorNombre?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+                    }
+                }
             )
 
             OutlinedTextField(
@@ -121,32 +134,39 @@ fun ConfirmarReserva(
                 onValueChange = { telefono = it },
                 label = { Text("Teléfono de contacto") },
                 modifier = Modifier.fillMaxWidth(),
-                singleLine = true
+                isError = errorTelefono != null && telefono.isNotEmpty(),
+                supportingText = {
+                    if (telefono.isNotEmpty()) {
+                        errorTelefono?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+                    }
+                }
             )
 
             OutlinedTextField(
                 value = cantidadPersonas,
                 onValueChange = { cantidadPersonas = it },
-                label = { Text("Cantidad de personas") },
+                label = { Text("Cantidad (Mín. 10 - Máx. 15)") },
                 modifier = Modifier.fillMaxWidth(),
-                singleLine = true
+                isError = errorCantidad != null && cantidadPersonas.isNotEmpty(),
+                supportingText = {
+                    if (cantidadPersonas.isNotEmpty()) {
+                        errorCantidad?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+                    }
+                }
             )
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            // Botones Finales
             Button(
                 onClick = onConfirmar,
                 modifier = Modifier.fillMaxWidth().height(56.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50)) // Verde confirmación
+                enabled = formularioValido,
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50), disabledContainerColor = Color.Gray)
             ) {
                 Text("FINALIZAR RESERVA", color = Color.White, fontWeight = FontWeight.Bold)
             }
 
-            OutlinedButton(
-                onClick = onBack,
-                modifier = Modifier.fillMaxWidth().height(56.dp)
-            ) {
+            OutlinedButton(onClick = onBack, modifier = Modifier.fillMaxWidth().height(56.dp)) {
                 Text("VOLVER ATRÁS")
             }
         }

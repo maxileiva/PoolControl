@@ -1,19 +1,12 @@
 package com.example.poolcontrol.navigation
 
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.DrawerValue
-import androidx.compose.material3.ModalNavigationDrawer
-import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.internal.composableLambda
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Modifier
-import androidx.navigation.NavController
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.example.poolcontrol.ui.components.appDrawer
-import com.example.poolcontrol.ui.components.defaultDrawerItems
+import androidx.navigation.navArgument
 import com.example.poolcontrol.ui.screen.AddReserva
 import com.example.poolcontrol.ui.screen.ConfirmarReserva
 import com.example.poolcontrol.ui.screen.DashboardAdmin
@@ -22,7 +15,7 @@ import com.example.poolcontrol.ui.screen.LoginScreen
 import com.example.poolcontrol.ui.screen.RegisterScreen
 import com.example.poolcontrol.ui.screen.ConsultaReserva
 import com.example.poolcontrol.ui.screen.VerPerfil
-import kotlinx.coroutines.launch
+import com.example.poolcontrol.ui.viewmodel.AuthViewModel
 
 
 @Composable
@@ -43,10 +36,17 @@ fun AppNavGraph(navController: NavHostController) {
 
         // LOGIN
         composable(Route.Login.path) {
+            // Obtenemos el ViewModel
+            val authViewModel: AuthViewModel = viewModel ()
+
             LoginScreen(
                 onGoRegister = goRegister,
+                authViewModel = authViewModel,
                 onLoginClick = { email ->
-                    if (email.contains("admin", ignoreCase = true)) {
+
+                    val cleanEmail = email.trim()
+
+                    if (cleanEmail.contains("admin", ignoreCase = true)) {
                         goDashAdmin()
                     } else {
                         goDashCli()
@@ -85,21 +85,38 @@ fun AppNavGraph(navController: NavHostController) {
             )
         }
 
-        composable(Route.Confirmar.path) { backStackEntry ->
-            // Extraemos el valor "fecha" que definimos en la clase Route
+        composable(Route.AddReserva.path) {
+            val vieneDeAdmin = navController.previousBackStackEntry?.destination?.route == Route.Admin.path
+
+            AddReserva(
+                navController = navController,
+                onBack = { navController.popBackStack() },
+                esAdmin = vieneDeAdmin
+            )
+        }
+
+        composable(
+            route = "ConfirmarReserva/{fecha}/{esAdmin}", // Ruta actualizada
+            arguments = listOf(
+                navArgument("fecha") { type = NavType.StringType },
+                navArgument("esAdmin") { type = NavType.BoolType } // Nuevo argumento booleano
+            )
+        ) { backStackEntry ->
             val fechaArg = backStackEntry.arguments?.getString("fecha") ?: "Sin fecha"
+            val esAdmin = backStackEntry.arguments?.getBoolean("esAdmin") ?: false
 
             ConfirmarReserva(
                 fechaSeleccionada = fechaArg,
                 onBack = { navController.popBackStack() },
                 onConfirmar = {
-                    // Después de confirmar, mejor volver al Home o Admin en lugar de AddReserva
-                    navController.navigate(Route.Home.path) {
-                        popUpTo(Route.Home.path) { inclusive = true }
+                    val destino = if (esAdmin) Route.Admin.path else Route.Home.path
+                    navController.navigate(destino) {
+                        popUpTo(destino) { inclusive = true }
                     }
                 }
             )
         }
+
 
         composable(Route.Consultar.path) {
             ConsultaReserva(onBack = {
