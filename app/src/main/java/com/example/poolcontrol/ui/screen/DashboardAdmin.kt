@@ -45,17 +45,27 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.poolcontrol.R
 import com.example.poolcontrol.ui.components.AppTopBar
+import com.example.poolcontrol.ui.components.BottomAppBar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 
 fun DashboardAdmin(
-    onGoLogin: () -> Unit,
-    onGoAddReserva: () -> Unit
+    onGoAddReserva: () -> Unit,
+    onGoPerfil: () -> Unit,
+    onGoConsultaReserva: () -> Unit,
+    onGoDashboardAdmin: () -> Unit
+
 ) {Scaffold(
     topBar = {
         AppTopBar(
         )
+    },
+    bottomBar = { BottomAppBar( onGoAddReserva = onGoAddReserva,
+                                onGoPerfil = onGoPerfil,
+                                onGoConsultaReserva = onGoConsultaReserva,
+                                onGoDashboardAdmin = onGoDashboardAdmin
+    )
     },
     // Posicionamos el botón abajo al centro
     floatingActionButtonPosition = FabPosition.Center,

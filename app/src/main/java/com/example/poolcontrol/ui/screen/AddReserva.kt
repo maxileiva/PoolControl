@@ -68,7 +68,8 @@ import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddReserva() {
+fun AddReserva(navController: NavHostController,
+               onBack: () -> Unit) {
     // Color de fondo cian para toda la pantalla
 
     val datePickerState = rememberDatePickerState()
@@ -144,16 +145,34 @@ fun AddReserva() {
             }
 
             Button(
-                onClick = { /* Lógica de reserva */ },
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Unspecified),
+                onClick = {
+                    if (selectedDateText.isNotEmpty() && selectedDateText != "Seleccione una fecha") {
+                        // Reemplazamos los "/" por "-" para evitar que la navegación falle
+                        val fechaSegura = selectedDateText.replace("/", "-")
+                        navController.navigate("ConfirmarReserva/$fechaSegura")
+                    }
+                },
+                enabled = selectedDateText != "Seleccione una fecha",
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if (selectedDateText != "Seleccione una fecha") Color(
+                        0xFF4CAF50
+                    ) else Color.Gray
+                ),
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp)
             ) {
-                Text("Confirmar Reserva", color = Color.White   )
+                Text("Siguiente", color = Color.White)
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Button(
+                onClick = onBack,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp)
+            ) {
+                Text("Volver")
+            }
         }
     }
 }

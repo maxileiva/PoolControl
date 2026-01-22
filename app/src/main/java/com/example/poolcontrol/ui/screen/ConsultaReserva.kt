@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
@@ -29,7 +30,8 @@ import com.example.poolcontrol.ui.components.AppTopBar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ConsultaReserva() {
+fun ConsultaReserva(onBack:() -> Unit) {
+
     Scaffold(
         topBar = {
             AppTopBar(
@@ -51,8 +53,6 @@ fun ConsultaReserva() {
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             )
 
-
-
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 elevation = CardDefaults.cardElevation(4.dp)
@@ -67,6 +67,12 @@ fun ConsultaReserva() {
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
+            }
+            Button(
+                onClick = onBack, // Solo llama a la función onBack
+                modifier = Modifier.fillMaxWidth().height(56.dp)
+            ) {
+                Text("Volver")
             }
         }
     }

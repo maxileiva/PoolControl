@@ -43,12 +43,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 
 @Composable
-
 fun RegisterScreen(
-    onGoHome: () -> Unit,
-    onGoLogin: () -> Unit
+    onGoLogin: () -> Unit,
+    onRegisterClick: (String) -> Unit // Cambiado para que coincida con el NavGraph
 ) {
-
     val bg = MaterialTheme.colorScheme.surfaceVariant
 
     var email by remember { mutableStateOf("") }
@@ -57,12 +55,11 @@ fun RegisterScreen(
     var numero by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
-    //contenedor pantalla completa
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(bg) //color de fondo
-            .padding(16.dp), // margenes interiores
+            .background(bg)
+            .padding(16.dp),
         contentAlignment = Alignment.TopCenter
     ) {
         Column(
@@ -70,6 +67,7 @@ fun RegisterScreen(
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
             Spacer(modifier = Modifier.height(30.dp))
+
             Image(
                 painter = painterResource(id = com.example.poolcontrol.R.drawable.logo),
                 contentDescription = "Imagen app",
@@ -79,50 +77,66 @@ fun RegisterScreen(
                     .clip(RoundedCornerShape(15.dp)),
                 contentScale = ContentScale.Crop
             )
-            Text(text = "Crear Usuario",
-            modifier = Modifier.fillMaxWidth(),
-            textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.headlineLarge,
-                fontWeight = FontWeight.Bold)
 
+            Text(
+                text = "Crear Usuario",
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.headlineLarge,
+                fontWeight = FontWeight.Bold
+            )
 
             Spacer(modifier = Modifier.height(10.dp))
 
+            // Campos de texto
             OutlinedTextField(
                 value = nombre,
                 onValueChange = { nombre = it },
-                label = { Text (text = "Nombre") },
+                label = { Text(text = "Nombre") },
                 modifier = Modifier.fillMaxWidth()
             )
             OutlinedTextField(
                 value = apellido,
                 onValueChange = { apellido = it },
-                label = { Text (text = "Apellido") },
+                label = { Text(text = "Apellido") },
                 modifier = Modifier.fillMaxWidth()
             )
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
-                label = { Text (text = "Email") },
+                label = { Text(text = "Email") },
                 modifier = Modifier.fillMaxWidth()
             )
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
-                label = { Text (text = "Contraseña") },
+                label = { Text(text = "Contraseña") },
                 modifier = Modifier.fillMaxWidth()
             )
             OutlinedTextField(
                 value = numero,
                 onValueChange = { numero = it },
-                label = { Text (text = "Numero de telefono") },
+                label = { Text(text = "Número de teléfono") },
                 modifier = Modifier.fillMaxWidth()
             )
 
             Spacer(modifier = Modifier.height(10.dp))
-            OutlinedButton(onClick = onGoHome) { Text(text = "Registrar") }
-            Button(onClick = onGoHome) { Text(text = "Volver") }
 
-        }
+            // BOTÓN REGISTRAR: Ahora envía el email para decidir si va a Admin o Cliente
+            OutlinedButton(
+                onClick = { onRegisterClick(email) },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(text = "Registrar")
+            }
+
+            // BOTÓN VOLVER: Te regresa al Login
+            Button(
+                onClick = onGoLogin,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(text = "Volver")
+            }
         }
     }
+}

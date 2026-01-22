@@ -44,15 +44,13 @@ import androidx.compose.runtime.setValue
 @Composable
 
 fun LoginScreen(
-    onGoHome: () -> Unit,
-    onGoRegister: () -> Unit
+    onGoRegister: () -> Unit,
+    onLoginClick: (String) -> Unit
 ) {
-
-    val bg = MaterialTheme.colorScheme.surfaceVariant
-
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
+    val bg = MaterialTheme.colorScheme.surfaceVariant
     //contenedor pantalla completa
     Box(
         modifier = Modifier
@@ -75,37 +73,44 @@ fun LoginScreen(
                     .clip(RoundedCornerShape(15.dp)),
                 contentScale = ContentScale.Crop
             )
-            Text(text = "PoolControl",
-            modifier = Modifier.fillMaxWidth(),
-            textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.headlineLarge,
-                fontWeight = FontWeight.Bold)
-            Text(text = "Control de acceso",
+            Text(
+                text = "PoolControl",
+                modifier = Modifier.fillMaxWidth(),
                 textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.headlineSmall,)
+                style = MaterialTheme.typography.headlineLarge,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = "Control de acceso",
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.headlineSmall,
+            )
 
             Spacer(modifier = Modifier.height(40.dp))
 
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
-                label = { Text (text = "email") },
+                label = { Text(text = "email") },
                 modifier = Modifier.fillMaxWidth()
             )
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
-                label = { Text (text = "Contraseña") },
+                label = { Text(text = "Contraseña") },
                 modifier = Modifier.fillMaxWidth()
             )
 
-
-
-
-
             Spacer(modifier = Modifier.height(150.dp))
-                Button(onClick = onGoHome) { Text(text = "Iniciar Sesion") }
-                OutlinedButton(onClick = onGoRegister) { Text(text = "Registrar nuevo usuario") }
+            Button(
+                onClick = { onLoginClick(email) } // Enviamos el email escrito al NavGraph
+            ) {
+                Text(text = "Iniciar Sesion")
+            }
+
+            OutlinedButton(onClick = onGoRegister) {
+                Text(text = "Registrar nuevo usuario")
             }
         }
     }
+}
