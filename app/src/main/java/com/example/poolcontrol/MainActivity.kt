@@ -1,5 +1,4 @@
 package com.example.poolcontrol
-
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -12,9 +11,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.poolcontrol.navigation.Route
-import com.example.poolcontrol.ui.screen.HomeScreen
+import com.example.poolcontrol.ui.screen.AddReserva
+import com.example.poolcontrol.ui.screen.ConsultaReserva
+import com.example.poolcontrol.ui.screen.DashboardAdmin
+import com.example.poolcontrol.ui.screen.DashboardCliente
 import com.example.poolcontrol.ui.screen.LoginScreen
+import com.example.poolcontrol.ui.screen.RegisterScreen
+
 import com.example.poolcontrol.ui.theme.PoolControlTheme
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -22,12 +27,12 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             PoolControlTheme {
-                    HomeScreen(
-
-                        onGoLogin = {},
-                        onGoAddReserva = {}
-
-                    )
+                DashboardCliente(
+                    onGoLogin = { },
+                    onGoAddReserva = { },
+                    onGoPerfil = {},
+                    onGoConsultaReserva = {}
+                )
             }
             }
         }

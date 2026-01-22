@@ -1,6 +1,7 @@
 package com.example.poolcontrol.ui.screen
 import android.R
 import android.net.wifi.hotspot2.pps.HomeSp
+import android.widget.Button
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -43,14 +44,17 @@ import androidx.compose.runtime.setValue
 
 @Composable
 
-fun LoginScreen(
+fun RegisterScreen(
     onGoHome: () -> Unit,
-    onGoRegister: () -> Unit
+    onGoLogin: () -> Unit
 ) {
 
     val bg = MaterialTheme.colorScheme.surfaceVariant
 
     var email by remember { mutableStateOf("") }
+    var nombre by remember { mutableStateOf("") }
+    var apellido by remember { mutableStateOf("") }
+    var numero by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
     //contenedor pantalla completa
@@ -75,21 +79,31 @@ fun LoginScreen(
                     .clip(RoundedCornerShape(15.dp)),
                 contentScale = ContentScale.Crop
             )
-            Text(text = "PoolControl",
+            Text(text = "Crear Usuario",
             modifier = Modifier.fillMaxWidth(),
             textAlign = TextAlign.Center,
             style = MaterialTheme.typography.headlineLarge,
                 fontWeight = FontWeight.Bold)
-            Text(text = "Control de acceso",
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.headlineSmall,)
 
-            Spacer(modifier = Modifier.height(40.dp))
 
+            Spacer(modifier = Modifier.height(10.dp))
+
+            OutlinedTextField(
+                value = nombre,
+                onValueChange = { nombre = it },
+                label = { Text (text = "Nombre") },
+                modifier = Modifier.fillMaxWidth()
+            )
+            OutlinedTextField(
+                value = apellido,
+                onValueChange = { apellido = it },
+                label = { Text (text = "Apellido") },
+                modifier = Modifier.fillMaxWidth()
+            )
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
-                label = { Text (text = "email") },
+                label = { Text (text = "Email") },
                 modifier = Modifier.fillMaxWidth()
             )
             OutlinedTextField(
@@ -98,14 +112,17 @@ fun LoginScreen(
                 label = { Text (text = "Contraseña") },
                 modifier = Modifier.fillMaxWidth()
             )
+            OutlinedTextField(
+                value = numero,
+                onValueChange = { numero = it },
+                label = { Text (text = "Numero de telefono") },
+                modifier = Modifier.fillMaxWidth()
+            )
 
+            Spacer(modifier = Modifier.height(10.dp))
+            OutlinedButton(onClick = onGoHome) { Text(text = "Registrar") }
+            Button(onClick = onGoHome) { Text(text = "Volver") }
 
-
-
-
-            Spacer(modifier = Modifier.height(150.dp))
-                Button(onClick = onGoHome) { Text(text = "Iniciar Sesion") }
-                OutlinedButton(onClick = onGoRegister) { Text(text = "Registrar nuevo usuario") }
-            }
+        }
         }
     }

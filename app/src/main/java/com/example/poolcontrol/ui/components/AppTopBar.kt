@@ -8,6 +8,7 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.rounded.Menu
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -28,24 +29,12 @@ import androidx.compose.ui.text.style.TextOverflow
 
 
 fun AppTopBar(
-  onOpenDrawer: () -> Unit, //abre menu desplegable
-  onHome: () -> Unit,
-  onLogin: () -> Unit,
-  onRegister: () -> Unit,
-  onAddReserva: () -> Unit
-){
-    //variable que recuerde el estado
-    //del menu desplegable o del menu 3 puntos
 
-    var verMenutrespuntos by remember { mutableStateOf(false) }
+) {
 
-    //barra alineada centro del topbar
-
-    CenterAlignedTopAppBar(
-        colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+    CenterAlignedTopAppBar(colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
             containerColor = MaterialTheme.colorScheme.primary
-        ),
-        title = {
+        ), title = {
             Text(
                 text = "Pool Control",
                 style = MaterialTheme.typography.titleLarge,
@@ -53,29 +42,7 @@ fun AppTopBar(
                 overflow = TextOverflow.Ellipsis //agrega ... si no se puede mostrar el texto completo
 
             )
-        },
-        //icono hamburgesa para menu desplegable
-        navigationIcon = {
-            IconButton(onClick = onOpenDrawer) {
-                Icon(imageVector = Icons.Filled.Menu,"menu")
-            }
-        },
-
-        actions = {
-            IconButton(onClick = onLogin) {
-                Icon(imageVector = Icons.Filled.Person, contentDescription = "Login")
-            }
-
-            IconButton(onClick = {verMenutrespuntos = true}) {
-                Icon(imageVector = Icons.Filled.MoreVert, contentDescription = "Ver mas")
-            }
-
-            DropdownMenu(
-                expanded = verMenutrespuntos,
-                onDismissRequest = { verMenutrespuntos = false}
-            ) { }
-
-        }
-
-    )
+        })
 }
+
+
