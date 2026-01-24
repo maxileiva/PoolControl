@@ -1,4 +1,4 @@
-package com.example.poolcontrol.data.local.Rol
+package com.example.poolcontrol.data.local.rol
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

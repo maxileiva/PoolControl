@@ -1,7 +1,8 @@
-package com.example.poolcontrol.data.local.Disponibilidad
+package com.example.poolcontrol.data.local.disponibilidad
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.example.poolcontrol.data.local.Piscina.PiscinaEntity
 
@@ -14,12 +15,13 @@ import com.example.poolcontrol.data.local.Piscina.PiscinaEntity
             childColumns = ["piscinaId"],
             onDelete = ForeignKey.CASCADE
         )
-    ]
+    ],
+    indices = [Index(value = ["fecha", "piscinaId"], unique = true)]
 )
 data class DisponibilidadEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
+    val fecha: String,      // Formato "yyyy-MM-dd"
     val piscinaId: Int,
-    val fecha: String,
-    val cuposDisponibles: Int
+    val estaDisponible: Boolean = true
 )

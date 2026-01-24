@@ -8,7 +8,7 @@ data class PiscinaEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
     val nombre: String,
-    val imagenRes: Int, //imagenes
-    val horarioApertura: String,
-    val horarioCierre: String
+    val imagenRes: Int, // ID del recurso drawable
+    val horarioApertura: String, // Ejemplo: "08:00"
+    val horarioCierre: String    // Ejemplo: "20:00"
 )

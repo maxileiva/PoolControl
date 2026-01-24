@@ -1,33 +1,27 @@
 package com.example.poolcontrol.data.local.user
 
+
+import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Update
 
-//indicamos las operaciones (sentencias sql) que admite la tabla
-//dao y entity para cada tabla
-
-
+@Dao
 interface UserDao {
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertar(user: UserEntity): Long
 
-//permitir que acepte insert
-    @Insert(onConflict = OnConflictStrategy.ABORT)   //-> abort realiza rolback
-    suspend fun insertar(User: UserEntity): Long
-     //devuelvo id por si necesito asociarlo a una reserva para que me devuelva automaticamente el id
+    @Update
+    suspend fun actualizarUsuario(usuario: UserEntity): Int // Devuelve 1 si tuvo éxito
 
-    //para hacer select //dar que sentencia SQL //ejemplo id existe   //ver si el user esta registrado
-    //mostrar datos en el perfil
     @Query("SELECT * FROM users WHERE email = :email LIMIT 1")
     suspend fun getByEmail(email: String): UserEntity?
 
-    //buscar todos los usuarios //editar esto para buscar todas las reservas
-    //@Query("SELECT * FROM USERS")
-    //suspend fun  getAll(): List<UserEntity>
+    @Query("SELECT * FROM users WHERE id = :id")
+    suspend fun obtenerUsuarioPorId(id: Long): UserEntity?
 
-    //contar cuantos usuarios existen
-    //@Query("SELECT COUNT(*) FROM users")
-    //suspend fun count(): Int
-
-
+    @Query("SELECT COUNT(*) FROM users")
+    suspend fun count(): Int
 
 }

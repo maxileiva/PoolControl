@@ -1,5 +1,6 @@
 package com.example.poolcontrol.ui.screen
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -13,161 +14,138 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.poolcontrol.R
 import com.example.poolcontrol.ui.components.AppTopBar
-// Importa tus validadores (asegúrate de que el package sea correcto)
 import com.example.poolcontrol.domain.validation.validateNameLettersOnly
 import com.example.poolcontrol.domain.validation.validatePhoneDigitsOnly
+import com.example.poolcontrol.ui.viewmodel.ReservaViewModel
+import com.example.poolcontrol.ui.viewmodel.AuthViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConfirmarReserva(
     fechaSeleccionada: String,
+    piscinaId: Int,
+    esAdmin: Boolean,
+    reservaViewModel: ReservaViewModel,
+    authViewModel: AuthViewModel,
     onBack: () -> Unit,
     onConfirmar: () -> Unit
 ) {
     val bg = MaterialTheme.colorScheme.surfaceVariant
+    val context = LocalContext.current
 
-    // ESTADOS MANUALES (Sin depender del ViewModel por ahora)
+    // ESTADOS
     var nombreCompleto by remember { mutableStateOf("") }
     var telefono by remember { mutableStateOf("") }
     var cantidadPersonas by remember { mutableStateOf("") }
 
-    // LÓGICA DE VALIDACIÓN
+    // AUTO-RELLENO DESDE AUTH VIEW MODEL
+    LaunchedEffect(authViewModel.userLogueado) {
+        if (!esAdmin && authViewModel.userLogueado != null) {
+            val u = authViewModel.userLogueado
+            nombreCompleto = "${u?.nombre} ${u?.apellido}"
+            telefono = u?.numero ?: ""
+        }
+    }
+
+    // VALIDACIONES
     val errorNombre = validateNameLettersOnly(nombreCompleto)
     val errorTelefono = validatePhoneDigitsOnly(telefono)
-
-    // Validación: Mínimo 10, Máximo 15
     val errorCantidad = when {
         cantidadPersonas.isBlank() -> "Ingrese cantidad"
         cantidadPersonas.toIntOrNull() == null -> "Solo números"
-        cantidadPersonas.toInt() < 10 -> "El mínimo es de 10 personas"
+        cantidadPersonas.toInt() < 10 -> "Mínimo 10 personas"
+        cantidadPersonas.toInt() > 200 -> "Máximo 200 personas"
         else -> null
     }
 
-    // El botón se habilita solo si todo está correcto
-    val formularioValido = errorNombre == null &&
-            errorTelefono == null &&
-            errorCantidad == null &&
-            nombreCompleto.isNotBlank()
+    val formularioValido = errorNombre == null && errorTelefono == null &&
+            errorCantidad == null && nombreCompleto.isNotBlank()
 
-    // Lista de piscinas (Asegúrate de tener estas imágenes en tu carpeta res/drawable)
-    val listaPiscinas = listOf(
-        Pair("Piscina Principal", R.drawable.piscina1),
-        Pair("Piscina Familia Pequeña", R.drawable.piscina2)
-    )
-    var piscinaSeleccionadaIndice by remember { mutableStateOf(0) }
+    val imagenPiscina = if (piscinaId == 2) R.drawable.piscina2 else R.drawable.piscina1
+    val nombrePiscina = if (piscinaId == 2) "Piscina Recreativa" else "Piscina Olímpica"
 
-    Scaffold(
-        topBar = { AppTopBar() }
-    ) { innerPadding ->
+    Scaffold(topBar = { AppTopBar() }) { innerPadding ->
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(bg)
-                .padding(innerPadding)
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp),
+            modifier = Modifier.fillMaxSize().background(bg).padding(innerPadding)
+                .verticalScroll(rememberScrollState()).padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Text(
-                text = "DETALLES DE RESERVA",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold
-            )
+            Text("DETALLES DE RESERVA", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
 
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF616161))
-            ) {
-                Text(
-                    text = "Fecha: $fechaSeleccionada",
-                    modifier = Modifier.padding(16.dp).fillMaxWidth(),
-                    color = Color.White,
-                    textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.titleLarge
-                )
-            }
-
-            // --- SELECTOR DE PISCINA ---
-            Text(text = "Seleccione el Recinto", fontWeight = FontWeight.Bold)
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Button(onClick = { if (piscinaSeleccionadaIndice > 0) piscinaSeleccionadaIndice-- }) { Text("<") }
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = Color(0xFF616161))) {
+                Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                     Image(
-                        painter = painterResource(id = listaPiscinas[piscinaSeleccionadaIndice].second),
-                        contentDescription = "Piscina",
-                        modifier = Modifier.size(150.dp).clip(RoundedCornerShape(12.dp)),
+                        painter = painterResource(id = imagenPiscina),
+                        contentDescription = null,
+                        modifier = Modifier.size(80.dp).clip(RoundedCornerShape(8.dp)),
                         contentScale = ContentScale.Crop
                     )
-                    Text(text = listaPiscinas[piscinaSeleccionadaIndice].first, fontWeight = FontWeight.Bold)
+                    Column(modifier = Modifier.padding(start = 16.dp)) {
+                        Text(nombrePiscina, color = Color.White, fontWeight = FontWeight.Bold)
+                        Text("Fecha: $fechaSeleccionada", color = Color.LightGray)
+                    }
                 }
-                Button(onClick = { if (piscinaSeleccionadaIndice < listaPiscinas.size - 1) piscinaSeleccionadaIndice++ }) { Text(">") }
             }
-
-            // --- CAMPOS DE TEXTO CON VALIDACIÓN ---
 
             OutlinedTextField(
                 value = nombreCompleto,
-                onValueChange = { nombreCompleto = it },
+                onValueChange = { if (esAdmin) nombreCompleto = it },
                 label = { Text("Nombre Completo") },
                 modifier = Modifier.fillMaxWidth(),
-                isError = errorNombre != null && nombreCompleto.isNotEmpty(),
-                supportingText = {
-                    if (nombreCompleto.isNotEmpty()) {
-                        errorNombre?.let { Text(it, color = MaterialTheme.colorScheme.error) }
-                    }
-                }
+                readOnly = !esAdmin,
+                isError = errorNombre != null
             )
 
             OutlinedTextField(
                 value = telefono,
-                onValueChange = { telefono = it },
-                label = { Text("Teléfono de contacto") },
+                onValueChange = { if (esAdmin) telefono = it },
+                label = { Text("Teléfono") },
                 modifier = Modifier.fillMaxWidth(),
-                isError = errorTelefono != null && telefono.isNotEmpty(),
-                supportingText = {
-                    if (telefono.isNotEmpty()) {
-                        errorTelefono?.let { Text(it, color = MaterialTheme.colorScheme.error) }
-                    }
-                }
+                readOnly = !esAdmin,
+                isError = errorTelefono != null
             )
 
             OutlinedTextField(
                 value = cantidadPersonas,
                 onValueChange = { cantidadPersonas = it },
-                label = { Text("Cantidad (Mín. 10 - Máx. 15)") },
+                label = { Text("Cantidad (10 - 200)") },
                 modifier = Modifier.fillMaxWidth(),
-                isError = errorCantidad != null && cantidadPersonas.isNotEmpty(),
-                supportingText = {
-                    if (cantidadPersonas.isNotEmpty()) {
-                        errorCantidad?.let { Text(it, color = MaterialTheme.colorScheme.error) }
-                    }
-                }
+                isError = errorCantidad != null,
+                supportingText = { errorCantidad?.let { Text(it) } }
             )
 
-            Spacer(modifier = Modifier.height(10.dp))
-
             Button(
-                onClick = onConfirmar,
-                modifier = Modifier.fillMaxWidth().height(56.dp),
+                onClick = {
+                    reservaViewModel.realizarReserva(
+                        fecha = fechaSeleccionada,
+                        nombre = nombreCompleto,
+                        telefono = telefono,
+                        cantidad = cantidadPersonas.toInt(),
+                        piscinaId = piscinaId,
+                        userId = authViewModel.userLogueado?.id ?: 1L,
+                        onSuccess = {
+                            Toast.makeText(context, "Reserva Exitosa", Toast.LENGTH_SHORT).show()
+                            onConfirmar() //creamos mensaje emergente
+                        },
+                        onError = { Toast.makeText(context, it, Toast.LENGTH_LONG).show() }
+                    )
+                },
                 enabled = formularioValido,
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50), disabledContainerColor = Color.Gray)
+                modifier = Modifier.fillMaxWidth().height(56.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
             ) {
-                Text("FINALIZAR RESERVA", color = Color.White, fontWeight = FontWeight.Bold)
+                Text("FINALIZAR RESERVA", fontWeight = FontWeight.Bold)
             }
 
-            OutlinedButton(onClick = onBack, modifier = Modifier.fillMaxWidth().height(56.dp)) {
-                Text("VOLVER ATRÁS")
+            OutlinedButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
+                Text("VOLVER")
             }
         }
     }

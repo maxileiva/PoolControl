@@ -84,7 +84,6 @@ fun RegisterScreen(
                 fontWeight = FontWeight.Bold
             )
 
-            // NOMBRE
             OutlinedTextField(
                 value = authViewModel.nombre,
                 onValueChange = { authViewModel.nombre = it },
@@ -92,7 +91,12 @@ fun RegisterScreen(
                 modifier = Modifier.fillMaxWidth(),
                 isError = authViewModel.errorNombre != null && authViewModel.nombre.isNotEmpty(),
                 supportingText = {
-                    authViewModel.errorNombre?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+                    authViewModel.errorNombre?.let {
+                        Text(
+                            it,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
                 }
             )
 
@@ -104,7 +108,12 @@ fun RegisterScreen(
                 modifier = Modifier.fillMaxWidth(),
                 isError = authViewModel.errorApellido != null && authViewModel.apellido.isNotEmpty(),
                 supportingText = {
-                    authViewModel.errorApellido?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+                    authViewModel.errorApellido?.let {
+                        Text(
+                            it,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
                 }
             )
 
@@ -116,7 +125,12 @@ fun RegisterScreen(
                 modifier = Modifier.fillMaxWidth(),
                 isError = authViewModel.errorEmail != null && authViewModel.email.isNotEmpty(),
                 supportingText = {
-                    authViewModel.errorEmail?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+                    authViewModel.errorEmail?.let {
+                        Text(
+                            it,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
                 }
             )
 
@@ -129,7 +143,12 @@ fun RegisterScreen(
                 visualTransformation = PasswordVisualTransformation(),
                 isError = authViewModel.errorPassword != null && authViewModel.password.isNotEmpty(),
                 supportingText = {
-                    authViewModel.errorPassword?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+                    authViewModel.errorPassword?.let {
+                        Text(
+                            it,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
                 }
             )
 
@@ -141,7 +160,12 @@ fun RegisterScreen(
                 modifier = Modifier.fillMaxWidth(),
                 isError = authViewModel.errorNumero != null && authViewModel.numero.isNotEmpty(),
                 supportingText = {
-                    authViewModel.errorNumero?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+                    authViewModel.errorNumero?.let {
+                        Text(
+                            it,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
                 }
             )
 
@@ -165,3 +189,4 @@ fun RegisterScreen(
         }
     }
 }
+
