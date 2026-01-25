@@ -37,6 +37,7 @@ import com.example.poolcontrol.navigation.Route
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -52,6 +53,9 @@ fun RegisterScreen(
     authViewModel: AuthViewModel = viewModel()
 ) {
     val bg = MaterialTheme.colorScheme.surfaceVariant
+    LaunchedEffect (Unit) {
+        authViewModel.limpiarCampos()
+    }
 
     Box(
         modifier = Modifier
@@ -155,7 +159,9 @@ fun RegisterScreen(
             // CAMPO TELÉFONO
             OutlinedTextField(
                 value = authViewModel.numero,
-                onValueChange = { authViewModel.numero = it },
+                onValueChange = {
+                    if (it.all { char -> char.isDigit() } && it.length <= 9) authViewModel.numero = it
+                },
                 label = { Text(text = "Número de teléfono") },
                 modifier = Modifier.fillMaxWidth(),
                 isError = authViewModel.errorNumero != null && authViewModel.numero.isNotEmpty(),

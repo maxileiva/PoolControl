@@ -54,7 +54,7 @@ class AuthViewModel(
         get() = if (apellido.isNotEmpty() && apellido.length < 2) "Apellido muy corto" else null
 
     val errorNumero: String?
-        get() = if (numero.isNotEmpty() && numero.length < 8) "Número inválido" else null
+        get() = if (numero.isNotEmpty() && numero.length != 9) "Deben ser 9 dígitos" else null
 
     val formularioValido: Boolean
         get() = loginValido && nombre.isNotEmpty() && apellido.isNotEmpty() &&
@@ -130,6 +130,10 @@ class AuthViewModel(
         nuevoNumero: String,
         onResult: (Boolean) -> Unit // Cambiamos onSuccess por onResult con booleano
     ) {
+        if (nuevoNumero.length != 9 || !nuevoNumero.all { it.isDigit() }) {
+            onResult(false)
+            return }
+
         viewModelScope.launch {
             val usuarioActual = userLogueado
             if (usuarioActual != null) {
@@ -153,4 +157,27 @@ class AuthViewModel(
             }
         }
     }
+
+    fun limpiarCampos() {
+        email = ""
+        password = ""
+        nombre = ""
+        apellido = ""
+        numero = ""
+        mensajeError = null
+    }
+
+
+    var fotoPerfil by mutableStateOf<android.graphics.Bitmap?>(null)
+
+
+
+
+
+
+
+
+
+
+
     }
