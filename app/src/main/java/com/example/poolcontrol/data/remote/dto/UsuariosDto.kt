@@ -6,10 +6,11 @@ import com.google.gson.annotations.SerializedName
 data class UserResponse(
     val id: Long,
     val nombre: String,
-    val apellido: String?, // Agrégalo aquí
+    val apellido: String?,
     val correo: String,
-    val telefono: String?, // Agrégalo aquí
-    val rol: RolData? = null
+    val telefono: String?,
+    val rol: RolData? = null,
+    val fotoPerfil: String? = null // Nuevo campo
 ) {
     val rolId: Int get() = rol?.id?.toInt() ?: 3
 }

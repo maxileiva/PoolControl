@@ -1,59 +1,47 @@
 package com.example.poolcontrol.ui.components
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.AddCircle
-import androidx.compose.material.icons.filled.Build
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Face
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material3.BottomAppBar
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.ReceiptLong
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-
 
 @Composable
 fun BottomAppBar(
-                 onGoAddReserva: () -> Unit,
-                 onGoPerfil: () -> Unit,
-                 onGoConsultaReserva: () -> Unit,
-                 onGoDashboardAdmin: () -> Unit
+    onGoHome: () -> Unit,
+    onGoPerfil: () -> Unit,
+    onGoConsultaReserva: () -> Unit,
+    onGoLogs: () -> Unit
 ) {
-    androidx.compose.material3.BottomAppBar {
+    NavigationBar {
+        NavigationBarItem(
+            selected = false,
+            onClick = onGoHome,
+            icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
+            label = { Text("Home") }
+        )
 
-        Row (
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly, // Distribuye espacio igual entre ellos
-            verticalAlignment = Alignment.CenterVertically
-        ){
-            IconButton(onClick = { onGoAddReserva() }) {
-                Icon(Icons.Filled.AddCircle, contentDescription = "Añadir")
-            }
-            IconButton(onClick = { onGoDashboardAdmin()}) {
-                Icon(Icons.Filled.Home, contentDescription = "Home")
-            }
-            IconButton(onClick = { onGoConsultaReserva() }) {
-                Icon(Icons.Filled.Menu, contentDescription = "Consultar Reservas")
-            }
-            IconButton(onClick = { onGoPerfil()}) {
-                Icon(Icons.Filled.Face, contentDescription = "Perfil")
-            }
-        }
-}
+        NavigationBarItem(
+            selected = false,
+            onClick = onGoConsultaReserva,
+            icon = { Icon(Icons.Default.List, contentDescription = "Reservas") },
+            label = { Text("Reservas") }
+        )
+
+        NavigationBarItem(
+            selected = false,
+            onClick = onGoLogs,
+            icon = { Icon(Icons.Default.ReceiptLong, contentDescription = "Logs") },
+            label = { Text("Logs") }
+        )
+
+        NavigationBarItem(
+            selected = false,
+            onClick = onGoPerfil,
+            icon = { Icon(Icons.Default.Person, contentDescription = "Perfil") },
+            label = { Text("Perfil") }
+        )
+    }
 }

@@ -1,82 +1,131 @@
 package com.example.poolcontrol.ui.viewmodel
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.poolcontrol.data.local.reserva.ReservaEntity
-import com.example.poolcontrol.data.repository.ReservaRepository
+import com.example.poolcontrol.data.remote.RemoteModuleReservas
+import com.example.poolcontrol.data.network.ReservaDto
 import kotlinx.coroutines.launch
 
-class ReservaViewModel(private val repository: ReservaRepository) : ViewModel() {
-
-    // Lista observable para que el calendario sepa qué días bloquear
-    var fechasBloqueadas by mutableStateOf<List<String>>(emptyList())
+class ReservaViewModel : ViewModel() {
+    var todasLasReservas = mutableStateListOf<ReservaDto>()
+    var reservasCliente = mutableStateListOf<ReservaDto>()
+    var fechasBloqueadas = mutableStateListOf<String>()
         private set
 
-    var todasLasReservas by mutableStateOf<List<ReservaEntity>>(emptyList())
-        private set
+    private val api = RemoteModuleReservas.api
 
-    fun cargarTodasLasReservas() {
-        viewModelScope.launch {
-            try {
-                // Ahora 'repository' ya reconoce esta función
-                todasLasReservas = repository.obtenerTodasLasReservas()
-            } catch (e: Exception) {
-                todasLasReservas = emptyList()
-            }
-        }
-    }
-    fun cargarFechasOcupadas(piscinaId: Int) {
-        viewModelScope.launch {
-            try {
-                fechasBloqueadas = repository.obtenerFechasOcupadas(piscinaId)
-            } catch (e: Exception) {
-                fechasBloqueadas = emptyList()
-            }
-        }
-    }
-
-    /**
-     * Guarda la reserva en la base de datos y actualiza la lista de bloqueos.
-     */
+    // FUNCIÓN PARA CREAR RESERVA (La que estaba dando error)
     fun realizarReserva(
         fecha: String,
-        nombre: String,
-        telefono: String,
-        cantidad: Int,
-        piscinaId: Int,
-        userId: Long,
+        nombrePiscina: String,
+        detalles: String,
+        precio: Double,
+        idCliente: Long,
+        estado: String,
         onSuccess: () -> Unit,
         onError: (String) -> Unit
     ) {
         viewModelScope.launch {
-            val nuevaReserva = ReservaEntity(
-                fecha = fecha,
-                nombreCliente = nombre,
-                telefonoCliente = telefono,
-                cant_personas = cantidad,
-                userId = userId,
-                piscinaId = piscinaId
-            )
-
-            val resultado = repository.guardarReserva(nuevaReserva)
-
-            if (resultado.isSuccess) {
-                // Refrescamos las fechas bloqueadas inmediatamente después de guardar
-                cargarFechasOcupadas(piscinaId)
-                onSuccess()
-            } else {
-                onError(resultado.exceptionOrNull()?.message ?: "Error desconocido")
+            try {
+                val dto = ReservaDto(
+                    id = null, // Importante para que el backend genere uno nuevo
+                    fecha = fecha,
+                    nombrePiscina = nombrePiscina,
+                    detalles = detalles,
+                    precio = precio,
+                    idCliente = idCliente,
+                    estado = estado
+                )
+                val response = api.crearReserva(dto)
+                if (response.isSuccessful) {
+                    cargarFechasOcupadas() // Refrescar calendario
+                    onSuccess()
+                } else {
+                    onError("Servidor respondió con error ${response.code()}")
+                }
+            } catch (e: Exception) {
+                onError(e.message ?: "Error de conexión")
             }
         }
     }
 
-    fun eliminarReserva(reserva: ReservaEntity) {
+    fun cargarFechasOcupadas() {
         viewModelScope.launch {
-            repository.eliminarReserva(reserva) // Crea esta función en el repo que llame a dao.delete(reserva)
-            cargarTodasLasReservas() // Recarga la lista automáticamente
+            try {
+                val response = api.obtenerTodas()
+                if (response.isSuccessful) {
+                    fechasBloqueadas.clear()
+                    val fechas = response.body()?.filter { it.estado != "RECHAZO APROBADO" }?.map { it.fecha } ?: emptyList()
+                    fechasBloqueadas.addAll(fechas)
+                }
+            } catch (e: Exception) { e.printStackTrace() }
+        }
+    }
+
+    fun cargarTodasLasReservas() {
+        viewModelScope.launch {
+            try {
+                val response = api.obtenerTodas()
+                if (response.isSuccessful) {
+                    todasLasReservas.clear()
+                    response.body()?.let { todasLasReservas.addAll(it) }
+                }
+            } catch (e: Exception) { e.printStackTrace() }
+        }
+    }
+
+    fun cargarReservasPorCliente(idCliente: Long) {
+        viewModelScope.launch {
+            try {
+                val response = api.obtenerTodas()
+                if (response.isSuccessful) {
+                    reservasCliente.clear()
+                    val filtradas = response.body()?.filter { it.idCliente == idCliente } ?: emptyList()
+                    reservasCliente.addAll(filtradas)
+                }
+            } catch (e: Exception) { e.printStackTrace() }
+        }
+    }
+
+    fun actualizarEstadoReserva(id: Long, nuevoEstado: String, esAdmin: Boolean, clienteId: Long = 0) {
+        viewModelScope.launch {
+            try {
+                val response = api.actualizarEstado(id, nuevoEstado)
+                if (response.isSuccessful) {
+                    if (esAdmin) cargarTodasLasReservas() else cargarReservasPorCliente(clienteId)
+                    cargarFechasOcupadas()
+                }
+            } catch (e: Exception) { e.printStackTrace() }
+        }
+    }
+
+    fun decidirCancelacion(id: Long, aceptada: Boolean, nota: String, esAdmin: Boolean, reserva: ReservaDto, clienteId: Long) {
+        viewModelScope.launch {
+            try {
+                val nuevoEstado = if (aceptada) "RECHAZO APROBADO" else "CANCELACION RECHAZADA"
+                val detalleLimpio = reserva.detalles.substringBefore(" | NOTA ADMIN:")
+                val nuevosDetalles = "$detalleLimpio | NOTA ADMIN: ${nota.ifEmpty { "Sin observaciones" }}"
+                val reservaUpdate = reserva.copy(estado = nuevoEstado, detalles = nuevosDetalles)
+                val response = api.crearReserva(reservaUpdate)
+                if (response.isSuccessful) {
+                    if (esAdmin) cargarTodasLasReservas() else cargarReservasPorCliente(clienteId)
+                    cargarFechasOcupadas()
+                }
+            } catch (e: Exception) { e.printStackTrace() }
+        }
+    }
+
+    fun eliminarReserva(id: Long) {
+        viewModelScope.launch {
+            try {
+                val response = api.eliminarReserva(id)
+                if (response.isSuccessful) {
+                    todasLasReservas.removeIf { it.id == id }
+                    reservasCliente.removeIf { it.id == id }
+                    cargarFechasOcupadas()
+                }
+            } catch (e: Exception) { e.printStackTrace() }
         }
     }
 }

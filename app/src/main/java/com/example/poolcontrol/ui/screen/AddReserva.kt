@@ -24,39 +24,40 @@ import java.util.*
 @Composable
 fun AddReserva(
     navController: NavHostController,
-    reservaViewModel: ReservaViewModel, // Agregado para leer fechas de la DB
+    reservaViewModel: ReservaViewModel,
     onBack: () -> Unit,
     esAdmin: Boolean = false,
     piscinaId: Int
 ) {
-    // Cargamos las fechas ocupadas desde la DB al iniciar la pantalla
-    LaunchedEffect(piscinaId) {
-        reservaViewModel.cargarFechasOcupadas(piscinaId)
+    // 1. Cargamos las fechas ocupadas desde la API al iniciar la pantalla
+    // Ahora sin parámetros porque la API trae todas las reservas
+    LaunchedEffect(Unit) {
+        reservaViewModel.cargarFechasOcupadas()
     }
 
     val fechasOcupadas = reservaViewModel.fechasBloqueadas
 
-    // Configuración del DatePicker con bloqueo dinámico
+    // 2. Configuración del DatePicker
     val datePickerState = rememberDatePickerState(
         selectableDates = object : SelectableDates {
             override fun isSelectableDate(utcTimeMillis: Long): Boolean {
-                // 1. Obtener la medianoche de hoy en UTC para comparar justamente
                 val calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
                     set(Calendar.HOUR_OF_DAY, 0)
                     set(Calendar.MINUTE, 0)
                     set(Calendar.SECOND, 0)
                     set(Calendar.MILLISECOND, 0)
                 }
-                val hoyMedianoche = calendar.timeInMillis
 
-                // 2. Permitir si es hoy o el futuro (>= hoyMedianoche)
-                if (utcTimeMillis < hoyMedianoche) return false
+                // No permitir fechas pasadas
+                if (utcTimeMillis < calendar.timeInMillis) return false
 
-                // 3. Bloquear fechas que ya están en la base de datos (ocupadas)
-                val fechaEvaluada = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).apply {
-                    timeZone = TimeZone.getTimeZone("UTC") // Importante: usar misma zona horaria
-                }.format(Date(utcTimeMillis))
+                // Formatear para comparar con lo que viene de la API (yyyy-MM-dd)
+                val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).apply {
+                    timeZone = TimeZone.getTimeZone("UTC")
+                }
+                val fechaEvaluada = sdf.format(Date(utcTimeMillis))
 
+                // Si la fecha está en la lista de bloqueadas, no es seleccionable
                 return !fechasOcupadas.contains(fechaEvaluada)
             }
 
@@ -82,13 +83,13 @@ fun AddReserva(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                text = "AGREGAR RESERVAS",
+                text = "SELECCIONAR FECHA",
                 style = MaterialTheme.typography.headlineMedium,
                 color = Color.Black,
                 fontWeight = FontWeight.Bold
             )
 
-            // Calendario
+            // Calendario visual
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = Color(0xFF616161)),
@@ -103,34 +104,38 @@ fun AddReserva(
                         containerColor = Color(0xFF616161),
                         titleContentColor = Color.White,
                         dayContentColor = Color.White,
-                        selectedDayContainerColor = Color.Red,
+                        selectedDayContainerColor = Color(0xFF4CAF50), // Verde para selección
                         selectedDayContentColor = Color.White,
                         weekdayContentColor = Color.White,
                         todayContentColor = Color.White,
-                        todayDateBorderColor = Color.Red,
-                        disabledDayContentColor = Color.Gray // Días ocupados o pasados
+                        todayDateBorderColor = Color.White,
+                        disabledDayContentColor = Color.Gray
                     ),
                     modifier = Modifier.padding(8.dp)
                 )
             }
 
-            // Fecha formateada para enviar a la siguiente pantalla (DB)
+            // Formateo de fecha para el envío (IMPORTANTE usar UTC aquí también)
             val selectedDateText = datePickerState.selectedDateMillis?.let {
-                SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(it))
+                SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).apply {
+                    timeZone = TimeZone.getTimeZone("UTC")
+                }.format(Date(it))
             } ?: ""
 
-            // Cuadro informativo visual para el usuario
+            // Información visual
             Surface(
                 color = Color.Black.copy(alpha = 0.3f),
                 shape = MaterialTheme.shapes.medium,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 val displayDate = datePickerState.selectedDateMillis?.let {
-                    SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date(it))
+                    SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).apply {
+                        timeZone = TimeZone.getTimeZone("UTC")
+                    }.format(Date(it))
                 } ?: "Ninguna"
 
                 Text(
-                    text = "Fecha seleccionada: $displayDate",
+                    text = "Fecha: $displayDate",
                     modifier = Modifier.padding(16.dp),
                     color = Color.White,
                     style = MaterialTheme.typography.titleMedium,
@@ -141,6 +146,7 @@ fun AddReserva(
             // Botón Siguiente
             Button(
                 onClick = {
+                    // Asegúrate de que tu ruta en el NavGraph soporte estos argumentos
                     navController.navigate("ConfirmarReserva/$selectedDateText/$piscinaId/$esAdmin")
                 },
                 enabled = selectedDateText.isNotEmpty(),
@@ -150,15 +156,14 @@ fun AddReserva(
                 ),
                 modifier = Modifier.fillMaxWidth().height(56.dp)
             ) {
-                Text("Siguiente", color = Color.White, fontWeight = FontWeight.Bold)
+                Text("SIGUIENTE", color = Color.White, fontWeight = FontWeight.Bold)
             }
 
-            // Botón Volver
             OutlinedButton(
                 onClick = onBack,
                 modifier = Modifier.fillMaxWidth().height(56.dp)
             ) {
-                Text("Volver")
+                Text("VOLVER")
             }
         }
     }

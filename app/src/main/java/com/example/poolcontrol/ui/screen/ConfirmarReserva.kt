@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -17,11 +18,12 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.poolcontrol.R
 import com.example.poolcontrol.ui.components.AppTopBar
 import com.example.poolcontrol.domain.validation.validateNameLettersOnly
-import com.example.poolcontrol.domain.validation.validatePhoneDigitsOnly
 import com.example.poolcontrol.ui.viewmodel.ReservaViewModel
 import com.example.poolcontrol.ui.viewmodel.AuthViewModel
 
@@ -38,58 +40,67 @@ fun ConfirmarReserva(
 ) {
     val bg = MaterialTheme.colorScheme.surfaceVariant
     val context = LocalContext.current
+    val precioPorPersona = 8000.0
 
-    // ESTADOS
     var nombreCompleto by remember { mutableStateOf("") }
     var telefono by remember { mutableStateOf("") }
     var cantidadPersonas by remember { mutableStateOf("") }
 
- /*   // AUTO-RELLENO DESDE AUTH VIEW MODEL
-    LaunchedEffect(authViewModel.userLogueado) {
-        if (!esAdmin && authViewModel.userLogueado != null) {
-            val u = authViewModel.userLogueado
-            nombreCompleto = "${u?.nombre} ${u?.apellido}"
-            telefono = u?.numero ?: ""
-        }
-    } */
+    val totalReserva = (cantidadPersonas.toIntOrNull() ?: 0) * precioPorPersona
 
-    // VALIDACIONES
+    LaunchedEffect(authViewModel.userLogueado) {
+        if (!esAdmin) {
+            authViewModel.userLogueado?.let { u ->
+                nombreCompleto = "${u.nombre} ${u.apellido ?: ""}"
+                telefono = u.telefono?.take(9) ?: ""
+            }
+        }
+    }
+
     val errorNombre = validateNameLettersOnly(nombreCompleto)
-    val errorTelefono = validatePhoneDigitsOnly(telefono)
+    val errorTelefono = if (telefono.length != 9) "Requeridos 9 dígitos" else null
     val errorCantidad = when {
-        cantidadPersonas.isBlank() -> "Ingrese cantidad"
-        cantidadPersonas.toIntOrNull() == null -> "Solo números"
-        cantidadPersonas.toInt() < 10 -> "Mínimo 10 personas"
-        cantidadPersonas.toInt() > 200 -> "Máximo 200 personas"
+        cantidadPersonas.isEmpty() -> "Ingrese cantidad"
+        (cantidadPersonas.toIntOrNull() ?: 0) < 10 -> "Mínimo 10"
+        (cantidadPersonas.toIntOrNull() ?: 0) > 200 -> "Máximo 200"
         else -> null
     }
 
     val formularioValido = errorNombre == null && errorTelefono == null &&
-            errorCantidad == null && nombreCompleto.isNotBlank()
+            errorCantidad == null && nombreCompleto.isNotEmpty()
 
-    val imagenPiscina = if (piscinaId == 2) R.drawable.piscina2 else R.drawable.piscina1
     val nombrePiscina = if (piscinaId == 2) "Piscina Recreativa" else "Piscina Olímpica"
+    val imagenRes = if (piscinaId == 2) R.drawable.piscina2 else R.drawable.piscina1
 
     Scaffold(topBar = { AppTopBar() }) { innerPadding ->
         Column(
-            modifier = Modifier.fillMaxSize().background(bg).padding(innerPadding)
-                .verticalScroll(rememberScrollState()).padding(16.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .background(bg)
+                .padding(innerPadding)
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Text("DETALLES DE RESERVA", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+            Text("RESUMEN DE RESERVA", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
 
-            Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = Color(0xFF616161))) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF616161))
+            ) {
                 Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                     Image(
-                        painter = painterResource(id = imagenPiscina),
+                        painter = painterResource(id = imagenRes),
                         contentDescription = null,
                         modifier = Modifier.size(80.dp).clip(RoundedCornerShape(8.dp)),
                         contentScale = ContentScale.Crop
                     )
-                    Column(modifier = Modifier.padding(start = 16.dp)) {
-                        Text(nombrePiscina, color = Color.White, fontWeight = FontWeight.Bold)
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Column {
+                        Text(nombrePiscina, color = Color.White, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleLarge)
                         Text("Fecha: $fechaSeleccionada", color = Color.LightGray)
+                        Text("Precio p/p: $8.000", color = Color(0xFF81C784), fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -100,48 +111,92 @@ fun ConfirmarReserva(
                 label = { Text("Nombre Completo") },
                 modifier = Modifier.fillMaxWidth(),
                 readOnly = !esAdmin,
-                isError = errorNombre != null
+                isError = errorNombre != null,
+                supportingText = { errorNombre?.let { Text(it) } }
             )
 
             OutlinedTextField(
                 value = telefono,
-                onValueChange = { if (esAdmin) telefono = it },
-                label = { Text("Teléfono") },
+                onValueChange = {
+                    if (esAdmin && it.all { c -> c.isDigit() } && it.length <= 9) {
+                        telefono = it
+                    }
+                },
+                label = { Text("Teléfono (9 dígitos)") },
                 modifier = Modifier.fillMaxWidth(),
                 readOnly = !esAdmin,
-                isError = errorTelefono != null
+                isError = errorTelefono != null,
+                supportingText = {
+                    errorTelefono?.let {
+                        Text(it, color = MaterialTheme.colorScheme.error)
+                    }
+                },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
             )
 
             OutlinedTextField(
                 value = cantidadPersonas,
-                onValueChange = { cantidadPersonas = it },
-                label = { Text("Cantidad (10 - 200)") },
+                onValueChange = { if (it.length <= 3) cantidadPersonas = it },
+                label = { Text("Cantidad de personas") },
                 modifier = Modifier.fillMaxWidth(),
                 isError = errorCantidad != null,
-                supportingText = { errorCantidad?.let { Text(it) } }
+                supportingText = { Text("Mínimo 10 - Máximo 200") }
             )
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(4.dp)
+            ) {
+                Row(
+                    modifier = Modifier.padding(20.dp).fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("TOTAL A PAGAR:", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Text(
+                        "$${String.format("%,.0f", totalReserva)}",
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = Color(0xFF2E7D32)
+                    )
+                }
+            }
 
             Button(
                 onClick = {
+                    val idClienteActual = if (esAdmin) -1L else (authViewModel.userLogueado?.id ?: -1L)
+                    val estadoInicial = if (esAdmin) "PAGADO" else "PENDIENTE"
+
+                    val detallesFinales = if (esAdmin) {
+                        "VENTA ADMIN: $nombreCompleto | Tel: $telefono | Cant: $cantidadPersonas"
+                    } else {
+                        "CLIENTE: $nombreCompleto | Cant: $cantidadPersonas"
+                    }
+
+                    // LLAMADA AL VIEWMODEL (Asegúrate que coincida con la definición en ReservaViewModel)
                     reservaViewModel.realizarReserva(
                         fecha = fechaSeleccionada,
-                        nombre = nombreCompleto,
-                        telefono = telefono,
-                        cantidad = cantidadPersonas.toInt(),
-                        piscinaId = piscinaId,
-                        userId = authViewModel.userLogueado?.id ?: 1L,
+                        nombrePiscina = nombrePiscina,
+                        detalles = detallesFinales,
+                        precio = totalReserva,
+                        idCliente = idClienteActual,
+                        estado = estadoInicial,
                         onSuccess = {
-                            Toast.makeText(context, "Reserva Exitosa", Toast.LENGTH_SHORT).show()
-                            onConfirmar() //creamos mensaje emergente
+                            Toast.makeText(context, "Reserva confirmada exitosamente", Toast.LENGTH_LONG).show()
+                            onConfirmar()
                         },
-                        onError = { Toast.makeText(context, it, Toast.LENGTH_LONG).show() }
+                        onError = { error ->
+                            android.util.Log.e("RESERVA_ERROR", error)
+                            Toast.makeText(context, "Error al reservar: $error", Toast.LENGTH_LONG).show()
+                        }
                     )
                 },
                 enabled = formularioValido,
                 modifier = Modifier.fillMaxWidth().height(56.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
             ) {
-                Text("FINALIZAR RESERVA", fontWeight = FontWeight.Bold)
+                Text("FINALIZAR RESERVA", fontWeight = FontWeight.Bold, fontSize = 16.sp)
             }
 
             OutlinedButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) {

@@ -7,8 +7,6 @@ import com.example.usuarios.service.UsuarioService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -36,10 +34,22 @@ public class UsuarioControllerTest {
     @Autowired
     private ObjectMapper mapper;
 
-    // Método auxiliar actualizado: Eliminamos el RUT del constructor
+    /**
+     * Método auxiliar actualizado: 
+     * Ahora incluye 'null' al final para el campo fotoPerfil 
+     * según el nuevo constructor de la entidad Usuario.
+     */
     private Usuario getEjemploUsuario() {
-        // Asumiendo que tu constructor ahora es: id, nombre, apellido, correo, telefono, contrasena, rol
-        return new Usuario(1L, "Luis", "Hurtubia", "luis@example.com", "+56912345678", "clave123", new Rol(1L, "CLIENTE"));
+        return new Usuario(
+            1L, 
+            "Luis", 
+            "Hurtubia", 
+            "luis@example.com", 
+            "+56912345678", 
+            "clave123", 
+            new Rol(1L, "CLIENTE"),
+            null // <--- Agregamos la fotoPerfil como null para el test
+        );
     }
 
     @Test
@@ -52,7 +62,7 @@ public class UsuarioControllerTest {
                 .content(mapper.writeValueAsString(usuario)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.nombre").value("Luis"))
-                .andExpect(jsonPath("$.correo").value("luis@example.com")); // Validamos por correo en lugar de RUT
+                .andExpect(jsonPath("$.correo").value("luis@example.com"));
     }
 
     @Test
@@ -91,6 +101,4 @@ public class UsuarioControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.nombre").value("Luis"));
     }
-
-    // Se eliminaron los métodos buscarUsuarioPorRut_existente y buscarUsuarioPorRut_noExistente
 }

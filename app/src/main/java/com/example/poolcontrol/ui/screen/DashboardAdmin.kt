@@ -3,8 +3,6 @@ package com.example.poolcontrol.ui.screen
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -21,13 +19,14 @@ import java.util.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardAdmin(
-    reservaViewModel: ReservaViewModel, // Agregado el ViewModel
+    reservaViewModel: ReservaViewModel,
     onGoAddReserva: () -> Unit,
     onGoPerfil: () -> Unit,
+    onGoHome: () -> Unit,
     onGoConsultaReserva: () -> Unit,
-    onGoDashboardAdmin: () -> Unit
+    onGoLogs: () -> Unit
 ) {
-    // 1. Cargar datos al iniciar
+
     LaunchedEffect(Unit) {
         reservaViewModel.cargarTodasLasReservas()
     }
@@ -35,32 +34,44 @@ fun DashboardAdmin(
     val listaReservas = reservaViewModel.todasLasReservas
     val hoyStr = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
 
-    // 2. Filtrar reserva de hoy y próximas
     val reservaHoy = listaReservas.find { it.fecha == hoyStr }
     val proximasReservas = listaReservas.filter { it.fecha > hoyStr }
-        .sortedBy { it.fecha } // Ordenar por fecha más cercana
+        .sortedBy { it.fecha }
 
     Scaffold(
         topBar = { AppTopBar() },
         bottomBar = {
             BottomAppBar(
-                onGoAddReserva = onGoAddReserva,
+                onGoHome = onGoHome,
                 onGoPerfil = onGoPerfil,
                 onGoConsultaReserva = onGoConsultaReserva,
-                onGoDashboardAdmin = onGoDashboardAdmin
+                onGoLogs = onGoLogs
             )
         },
-        floatingActionButtonPosition = FabPosition.Center,
         floatingActionButton = {
-            ExtendedFloatingActionButton(
+            FloatingActionButton(
                 onClick = onGoAddReserva,
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-                icon = { Icon(Icons.Default.Add, null) },
-                text = { Text("Añadir Reserva") }
-            )
+                containerColor = MaterialTheme.colorScheme.primary
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    modifier = Modifier.padding(horizontal = 8.dp)
+                ) {
+                    Text(
+                        text = "+",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "Agregar reserva",
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                }
+            }
         }
     ) { innerPadding ->
+
         Column(
             modifier = Modifier
                 .padding(innerPadding)
@@ -68,7 +79,6 @@ fun DashboardAdmin(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // --- SECCIÓN RESERVA DE HOY ---
             Text(
                 text = "Reserva de Hoy ($hoyStr)",
                 style = MaterialTheme.typography.titleLarge,
@@ -78,79 +88,55 @@ fun DashboardAdmin(
             if (reservaHoy != null) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFFE3F2FD)),
-                    elevation = CardDefaults.cardElevation(4.dp)
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFFE3F2FD))
                 ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text(text = "Cliente: ${reservaHoy.nombreCliente}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                        Text(text = "Teléfono: ${reservaHoy.telefonoCliente}", style = MaterialTheme.typography.bodyLarge)
-                        Text(text = "Personas: ${reservaHoy.cant_personas}", style = MaterialTheme.typography.bodyMedium)
-                        Text(text = "Piscina ID: ${reservaHoy.piscinaId}", color = Color.Gray)
+                    Column(Modifier.padding(16.dp)) {
+                        Text("Piscina: ${reservaHoy.nombrePiscina}", fontWeight = FontWeight.Bold)
+                        Text("Detalles: ${reservaHoy.detalles}")
+                        Text("Monto: $${reservaHoy.precio}", color = Color(0xFF2E7D32))
+                        Text("Estado: ${reservaHoy.estado}", style = MaterialTheme.typography.labelSmall)
                     }
                 }
             } else {
-                Text(
-                    text = "No hay reservas para hoy.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.Gray,
-                    modifier = Modifier.padding(vertical = 8.dp)
-                )
+                Text("No hay reservas para hoy", color = Color.Gray)
             }
 
             Divider()
 
-            // --- SECCIÓN PRÓXIMOS CLIENTES ---
-            Text(
-                text = "Agenda de Próximos Clientes",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
+            Text("Agenda Próxima", fontWeight = FontWeight.Bold)
 
             if (proximasReservas.isEmpty()) {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
                     Text("No hay reservas futuras", color = Color.Gray)
                 }
             } else {
                 LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(10.dp),
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     items(proximasReservas) { reserva ->
-                        Card(
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceVariant
-                            )
-                        ) {
+                        Card(modifier = Modifier.fillMaxWidth()) {
                             Row(
                                 modifier = Modifier.padding(12.dp),
-                                verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(
-                                        text = formatearFechaParaMostrar(reserva.fecha),
-                                        fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.primary
-                                    )
-                                    Text(text = "Cliente: ${reserva.nombreCliente}")
-                                    Text(text = "${reserva.cant_personas} personas", style = MaterialTheme.typography.bodySmall)
+                                Column {
+                                    Text(formatearFechaParaMostrar(reserva.fecha), fontWeight = FontWeight.Bold)
+                                    Text(reserva.nombrePiscina)
+                                    Text(reserva.detalles, maxLines = 1)
                                 }
-                                Badge(containerColor = if(reserva.piscinaId == 1) Color.Blue else Color.Magenta) {
-                                    Text("P${reserva.piscinaId}", color = Color.White)
+                                Badge {
+                                    Text(if (reserva.nombrePiscina.contains("Olímpica")) "P1" else "P2")
                                 }
                             }
                         }
                     }
                 }
             }
-            // Espacio para que el FAB no tape el contenido
-            Spacer(modifier = Modifier.height(60.dp))
         }
     }
 }
 
-// Función auxiliar para que la fecha se vea bonita (ej: 24 Jan)
 fun formatearFechaParaMostrar(fechaDb: String): String {
     return try {
         val parser = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())

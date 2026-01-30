@@ -75,4 +75,25 @@ class UsuariosRepository(
         }
     }
 
+    /**
+     * Función para actualizar el perfil (incluyendo la foto).
+     */
+    suspend fun actualizarPerfil(id: Long, datos: Map<String, String>): Response<UserResponse> {
+        // Simplemente llamamos a la función que ya definiste en UsuariosApi
+        return api.actualizarPerfil(id, datos)
+    }
+
+    suspend fun cambiarContrasena(id: Long, datos: Map<String, String>): Result<Unit> {
+        return try {
+            val response = api.cambiarContrasena(id, datos)
+            if (response.isSuccessful) {
+                Result.success(Unit)
+            } else {
+                Result.failure(Exception("Error: ${response.code()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
 }

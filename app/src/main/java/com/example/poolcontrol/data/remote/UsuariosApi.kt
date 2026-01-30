@@ -12,8 +12,17 @@ interface UsuariosApi {
     suspend fun register(@Body request: RegisterRequest): Response<UserResponse>
 
     @PUT("api/usuarios/{id}")
-    suspend fun actualizarPerfil(@Path("id") id: Long, @Body datos: Map<String, String>): Response<UserResponse>
+    suspend fun actualizarPerfil(
+        @Path("id") id: Long,
+        @Body datos: Map<String, String>
+    ): Response<UserResponse>
 
-    @PUT("api/usuarios/{id}/password")
-    suspend fun cambiarContrasena(@Path("id") id: Long, @Body passwords: Map<String, String>): Response<Unit>
+    @PUT("api/usuarios/{id}/contrasena")
+    suspend fun cambiarContrasena(
+        @Path("id") id: Long,
+        @Body datos: Map<String, String>
+    ): Response<Unit> // Unit es correcto para respuestas 200 OK sin cuerpo
+
+    @POST("api/usuarios/recuperar-password")
+    suspend fun recuperarPassword(@Body datos: Map<String, String>): Response<Unit>
 }

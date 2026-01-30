@@ -1,29 +1,19 @@
 package com.example.poolcontrol.ui.viewmodel
 
-import android.util.Log
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.poolcontrol.data.remote.UsuariosApi
-import com.example.poolcontrol.data.remote.RemoteModuleUsuarios
-import com.example.poolcontrol.data.remote.dto.LoginRequest
-import com.example.poolcontrol.data.remote.dto.RegisterRequest
-import com.example.poolcontrol.data.remote.dto.UserResponse
+import com.example.poolcontrol.data.remote.*
+import com.example.poolcontrol.data.remote.dto.*
 import kotlinx.coroutines.launch
 
 class AuthViewModel : ViewModel() {
-
+    // --- ESTADOS PARA LOGIN ---
     var email by mutableStateOf("")
     var password by mutableStateOf("")
-    var userLogueado by mutableStateOf<UserResponse?>(null)
     var mensajeError by mutableStateOf<String?>(null)
 
-    private val authApi: UsuariosApi = RemoteModuleUsuarios.create(UsuariosApi::class.java)
-
-    // PROPIEDAD RESTAURADA: Valida que el email tenga @ y la clave al menos 3 caracteres
-    val loginValido: Boolean get() = email.contains("@") && password.length >= 3
+    val loginValido: Boolean get() = email.contains("@") && password.length >= 4
 
     fun limpiarCampos() {
         email = ""
@@ -31,66 +21,80 @@ class AuthViewModel : ViewModel() {
         mensajeError = null
     }
 
+    // --- ESTADO DE SESIÓN ---
+    var userLogueado by mutableStateOf<UserResponse?>(null)
+
+    private val authApi: UsuariosApi = RemoteModuleUsuarios.create(UsuariosApi::class.java)
+
+    // LOGIN
     fun login(correo: String, pass: String, onSuccess: (UserResponse) -> Unit) {
         viewModelScope.launch {
-            mensajeError = null
             try {
                 val response = authApi.login(LoginRequest(correo, pass))
-                if (response.isSuccessful && response.body() != null) {
+                if (response.isSuccessful) {
                     userLogueado = response.body()
                     onSuccess(userLogueado!!)
                 } else {
-                    mensajeError = "Correo o contraseña incorrectos"
+                    mensajeError = "Credenciales incorrectas"
                 }
             } catch (e: Exception) {
-                mensajeError = "Servidor no disponible"
+                mensajeError = "Error de conexión"
             }
         }
     }
 
-    fun registrar(nom: String, ape: String, cor: String, pas: String, tel: String, onResult: (Boolean, String) -> Unit) {
+    // ACTUALIZAR PERFIL (Datos generales y Foto)
+    fun actualizarPerfilCompleto(nom: String, ape: String, tel: String, foto: String?, onResult: (Boolean, String) -> Unit) {
+        val user = userLogueado ?: return
+        val datos = mapOf(
+            "nombre" to nom,
+            "apellido" to ape,
+            "telefono" to tel,
+            "fotoPerfil" to (foto ?: user.fotoPerfil ?: "")
+        )
         viewModelScope.launch {
             try {
-                val request = RegisterRequest(nom, ape, cor, pas, tel, "CLIENTE")
-                val response = authApi.register(request)
+                val response = authApi.actualizarPerfil(user.id, datos)
                 if (response.isSuccessful) {
-                    onResult(true, "¡Registro exitoso!")
+                    userLogueado = response.body()
+                    onResult(true, "Perfil actualizado")
                 } else {
-                    val errorBody = response.errorBody()?.string() ?: ""
-                    val mensaje = when {
-                        errorBody.contains("correo", true) -> "Este correo ya está registrado"
-                        errorBody.contains("telefono", true) -> "Este teléfono ya está registrado"
-                        else -> "Error en el servidor"
-                    }
-                    onResult(false, mensaje)
+                    onResult(false, if (response.code() == 409) "El teléfono ya existe" else "Error al actualizar")
                 }
             } catch (e: Exception) {
-                onResult(false, "Error de conexión")
+                onResult(false, "Error de red")
             }
         }
     }
 
-    fun actualizarDatosRemotos(nom: String, ape: String, tel: String, onResult: (Boolean) -> Unit) {
+    // CAMBIAR CONTRASEÑA (Llama a @PUT("api/usuarios/{id}/contrasena"))
+    fun cambiarContrasenaRemoto(actual: String, nueva: String, onResult: (Boolean, String) -> Unit) {
+        val user = userLogueado ?: return
+        val datos = mapOf("contrasenaActual" to actual, "nuevaContrasena" to nueva)
         viewModelScope.launch {
             try {
-                val id = userLogueado?.id ?: return@launch
-                val response = authApi.actualizarPerfil(id, mapOf("nombre" to nom, "apellido" to ape, "telefono" to tel))
-                if (response.isSuccessful && response.body() != null) {
-                    userLogueado = response.body()
-                    onResult(true)
-                } else onResult(false)
-            } catch (e: Exception) { onResult(false) }
+                val response = authApi.cambiarContrasena(user.id, datos)
+                if (response.isSuccessful) {
+                    onResult(true, "Contraseña cambiada con éxito")
+                } else {
+                    onResult(false, "La contraseña actual es incorrecta")
+                }
+            } catch (e: Exception) {
+                onResult(false, "Error de comunicación")
+            }
         }
     }
 
-    fun cambiarContrasenaRemoto(actual: String, nueva: String, onResult: (Boolean, String) -> Unit) {
+    // RECUPERAR CONTRASEÑA
+    fun recuperarPassword(cor: String, tel: String, nueva: String, onResult: (Boolean, String) -> Unit) {
+        val datos = mapOf("correo" to cor, "telefono" to tel, "nuevaContrasena" to nueva)
         viewModelScope.launch {
             try {
-                val id = userLogueado?.id ?: return@launch
-                val response = authApi.cambiarContrasena(id, mapOf("contrasenaActual" to actual, "nuevaContrasena" to nueva))
-                if (response.isSuccessful) onResult(true, "Contraseña actualizada")
-                else onResult(false, "Clave actual incorrecta")
-            } catch (e: Exception) { onResult(false, "Error de red") }
+                val resp = authApi.recuperarPassword(datos)
+                if (resp.isSuccessful) onResult(true, "Éxito") else onResult(false, "Datos incorrectos")
+            } catch (e: Exception) {
+                onResult(false, "Error de red")
+            }
         }
     }
 }
