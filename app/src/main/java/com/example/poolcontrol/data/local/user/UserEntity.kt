@@ -3,7 +3,6 @@ package com.example.poolcontrol.data.local.user
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
-// IMPORTANTE: Asegúrate de que esta ruta sea la correcta para tu RolEntity
 import com.example.poolcontrol.data.local.rol.RolEntity
 
 @Entity(
@@ -18,12 +17,12 @@ import com.example.poolcontrol.data.local.rol.RolEntity
     ]
 )
 data class UserEntity(
-    @PrimaryKey(autoGenerate = true)
-    val id: Long = 0L,
+    @PrimaryKey(autoGenerate = false) // El ID lo dicta la base de datos de Laragon
+    val id: Long,
     val nombre: String,
     val apellido: String,
-    val email: String,
-    val password: String,
-    val numero: String,
+    val correo: String,      // Sincronizado con el backend
+    val contrasena: String? = null, // Puede ser null porque el backend no la devuelve por seguridad
+    val telefono: String,    // Sincronizado con el backend
     val rolId: Int
 )

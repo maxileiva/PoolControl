@@ -44,14 +44,14 @@ fun ConfirmarReserva(
     var telefono by remember { mutableStateOf("") }
     var cantidadPersonas by remember { mutableStateOf("") }
 
-    // AUTO-RELLENO DESDE AUTH VIEW MODEL
+ /*   // AUTO-RELLENO DESDE AUTH VIEW MODEL
     LaunchedEffect(authViewModel.userLogueado) {
         if (!esAdmin && authViewModel.userLogueado != null) {
             val u = authViewModel.userLogueado
             nombreCompleto = "${u?.nombre} ${u?.apellido}"
             telefono = u?.numero ?: ""
         }
-    }
+    } */
 
     // VALIDACIONES
     val errorNombre = validateNameLettersOnly(nombreCompleto)

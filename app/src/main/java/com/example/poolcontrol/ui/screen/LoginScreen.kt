@@ -20,9 +20,9 @@ import com.example.poolcontrol.ui.viewmodel.AuthViewModel
 
 @Composable
 fun LoginScreen(
-    authViewModel: AuthViewModel, // Nombre de parámetro unificado para el NavGraph
+    authViewModel: AuthViewModel,
     onGoRegister: () -> Unit,
-    onLoginClick: (String) -> Unit
+    onLoginClick: (String, String) -> Unit // Cambiado de (String) a (String, String)
 ) {
     val bg = MaterialTheme.colorScheme.surfaceVariant
 
@@ -31,10 +31,7 @@ fun LoginScreen(
     }
 
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(bg)
-            .padding(16.dp),
+        modifier = Modifier.fillMaxSize().background(bg).padding(16.dp),
         contentAlignment = Alignment.TopCenter
     ) {
         Column(
@@ -43,80 +40,40 @@ fun LoginScreen(
         ) {
             Spacer(modifier = Modifier.height(30.dp))
 
-            // LOGO
+            // LOGO y TÍTULOS (Se mantienen igual...)
             Image(
                 painter = painterResource(id = com.example.poolcontrol.R.drawable.logo),
                 contentDescription = "Imagen app",
-                modifier = Modifier
-                    .size(150.dp)
-                    .clip(RoundedCornerShape(15.dp)),
+                modifier = Modifier.size(150.dp).clip(RoundedCornerShape(15.dp)),
                 contentScale = ContentScale.Crop
             )
-
-            Text(
-                text = "PoolControl",
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.headlineLarge,
-                fontWeight = FontWeight.Bold
-            )
-
-            Text(
-                text = "Control de acceso",
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.headlineSmall,
-            )
+            Text(text = "PoolControl", style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Bold)
 
             Spacer(modifier = Modifier.height(40.dp))
 
-            // CAMPO EMAIL conectado al ViewModel
+            // CAMPOS DE TEXTO (Se mantienen igual...)
             OutlinedTextField(
                 value = authViewModel.email,
                 onValueChange = { authViewModel.email = it },
                 label = { Text("Email") },
-                modifier = Modifier.fillMaxWidth(),
-                isError = authViewModel.errorEmail != null && authViewModel.email.isNotEmpty(),
-                supportingText = {
-                    authViewModel.errorEmail?.let { mensaje ->
-                        if (authViewModel.email.isNotEmpty()) {
-                            Text(text = mensaje, color = MaterialTheme.colorScheme.error)
-                        }
-                    }
-                },
-                singleLine = true
+                modifier = Modifier.fillMaxWidth()
             )
 
-            // CAMPO CONTRASEÑA conectado al ViewModel
             OutlinedTextField(
                 value = authViewModel.password,
                 onValueChange = { authViewModel.password = it },
                 label = { Text("Contraseña") },
                 modifier = Modifier.fillMaxWidth(),
-                visualTransformation = PasswordVisualTransformation(),
-                isError = authViewModel.errorPassword != null && authViewModel.password.isNotEmpty(),
-                supportingText = {
-                    authViewModel.errorPassword?.let { mensaje ->
-                        if (authViewModel.password.isNotEmpty()) {
-                            Text(text = mensaje, color = MaterialTheme.colorScheme.error)
-                        }
-                    }
-                },
-                singleLine = true
+                visualTransformation = PasswordVisualTransformation()
             )
 
-            // MENSAJE DE ERROR DE LA BASE DE DATOS (Si el login falla)
             authViewModel.mensajeError?.let { msg ->
-                Text(
-                    text = msg,
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(vertical = 4.dp)
-                )
+                Text(text = msg, color = MaterialTheme.colorScheme.error)
             }
 
-            // BOTÓN LOGIN
+            // BOTÓN LOGIN - CORREGIDO PARA ENVIAR AMBOS DATOS
             Button(
-                onClick = { onLoginClick(authViewModel.email) },
+                onClick = { onLoginClick(authViewModel.email, authViewModel.password) },
                 modifier = Modifier.fillMaxWidth().height(56.dp),
                 enabled = authViewModel.loginValido
             ) {

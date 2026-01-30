@@ -1,198 +1,118 @@
 package com.example.poolcontrol.ui.screen
-import android.R
-import android.net.wifi.hotspot2.pps.HomeSp
-import android.widget.Button
-import androidx.compose.foundation.Image
+
+import android.widget.Toast
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.Button
-import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import com.example.poolcontrol.navigation.Route
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.poolcontrol.ui.viewmodel.AuthViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RegisterScreen(
-    onGoLogin: () -> Unit,
-    onRegisterClick: (String) -> Unit,
-    authViewModel: AuthViewModel = viewModel()
-) {
-    val bg = MaterialTheme.colorScheme.surfaceVariant
-    LaunchedEffect (Unit) {
-        authViewModel.limpiarCampos()
-    }
+fun RegisterScreen(authViewModel: AuthViewModel, onNavigateToLogin: () -> Unit) {
+    var nombre by remember { mutableStateOf("") }
+    var apellido by remember { mutableStateOf("") }
+    var correo by remember { mutableStateOf("") }
+    var telefono by remember { mutableStateOf("") }
+    var contrasena by remember { mutableStateOf("") }
+    var confirmarContrasena by remember { mutableStateOf("") }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(bg)
-            .padding(16.dp),
-        contentAlignment = Alignment.TopCenter
-    ) {
+    val context = LocalContext.current
+    val soloLetrasRegex = Regex("^[a-zA-ZñÑáéíóúÁÉÍÓÚ\\s]*$")
+    val bg = MaterialTheme.colorScheme.surfaceVariant
+
+    val formularioValido = nombre.length >= 2 && apellido.length >= 2 &&
+            correo.contains("@") && telefono.length == 9 &&
+            contrasena.length >= 6 && contrasena == confirmarContrasena
+
+    Box(modifier = Modifier.fillMaxSize().background(bg)) {
         Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            modifier = Modifier.fillMaxSize().padding(24.dp).verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(modifier = Modifier.height(30.dp))
+            Text("Nueva Cuenta", style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+            Text("Regístrate para continuar", color = Color.Gray)
+            Spacer(modifier = Modifier.height(24.dp))
 
-            Image(
-                painter = painterResource(id = com.example.poolcontrol.R.drawable.logo),
-                contentDescription = "Imagen app",
-                modifier = Modifier
-                    .width(120.dp)
-                    .height(120.dp)
-                    .clip(RoundedCornerShape(15.dp)),
-                contentScale = ContentScale.Crop
-            )
-
-            Text(
-                text = "Crear Usuario",
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold
-            )
-
-            OutlinedTextField(
-                value = authViewModel.nombre,
-                onValueChange = { authViewModel.nombre = it },
-                label = { Text(text = "Nombre") },
-                modifier = Modifier.fillMaxWidth(),
-                isError = authViewModel.errorNombre != null && authViewModel.nombre.isNotEmpty(),
-                supportingText = {
-                    authViewModel.errorNombre?.let {
-                        Text(
-                            it,
-                            color = MaterialTheme.colorScheme.error
-                        )
-                    }
-                }
-            )
-
-            // CAMPO APELLIDO
-            OutlinedTextField(
-                value = authViewModel.apellido,
-                onValueChange = { authViewModel.apellido = it },
-                label = { Text(text = "Apellido") },
-                modifier = Modifier.fillMaxWidth(),
-                isError = authViewModel.errorApellido != null && authViewModel.apellido.isNotEmpty(),
-                supportingText = {
-                    authViewModel.errorApellido?.let {
-                        Text(
-                            it,
-                            color = MaterialTheme.colorScheme.error
-                        )
-                    }
-                }
-            )
-
-            // CAMPO EMAIL
-            OutlinedTextField(
-                value = authViewModel.email,
-                onValueChange = { authViewModel.email = it },
-                label = { Text(text = "Email") },
-                modifier = Modifier.fillMaxWidth(),
-                isError = authViewModel.errorEmail != null && authViewModel.email.isNotEmpty(),
-                supportingText = {
-                    authViewModel.errorEmail?.let {
-                        Text(
-                            it,
-                            color = MaterialTheme.colorScheme.error
-                        )
-                    }
-                }
-            )
-
-            // CAMPO CONTRASEÑA
-            OutlinedTextField(
-                value = authViewModel.password,
-                onValueChange = { authViewModel.password = it },
-                label = { Text(text = "Contraseña") },
-                modifier = Modifier.fillMaxWidth(),
-                visualTransformation = PasswordVisualTransformation(),
-                isError = authViewModel.errorPassword != null && authViewModel.password.isNotEmpty(),
-                supportingText = {
-                    authViewModel.errorPassword?.let {
-                        Text(
-                            it,
-                            color = MaterialTheme.colorScheme.error
-                        )
-                    }
-                }
-            )
-
-            // CAMPO TELÉFONO
-            OutlinedTextField(
-                value = authViewModel.numero,
-                onValueChange = {
-                    if (it.all { char -> char.isDigit() } && it.length <= 9) authViewModel.numero = it
-                },
-                label = { Text(text = "Número de teléfono") },
-                modifier = Modifier.fillMaxWidth(),
-                isError = authViewModel.errorNumero != null && authViewModel.numero.isNotEmpty(),
-                supportingText = {
-                    authViewModel.errorNumero?.let {
-                        Text(
-                            it,
-                            color = MaterialTheme.colorScheme.error
-                        )
-                    }
-                }
-            )
-
-            Spacer(modifier = Modifier.height(10.dp))
-
-            // BOTÓN REGISTRAR
-            OutlinedButton(
-                onClick = { onRegisterClick(authViewModel.email) },
-                modifier = Modifier.fillMaxWidth(),
-                enabled = authViewModel.formularioValido
-            ) {
-                Text(text = "Registrar")
-            }
-
-            Button(
-                onClick = onGoLogin,
+            Card(
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text(text = "Volver")
+                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    OutlinedTextField(
+                        value = nombre, onValueChange = { if (it.matches(soloLetrasRegex)) nombre = it },
+                        label = { Text("Nombre") }, leadingIcon = { Icon(Icons.Default.Person, null) },
+                        modifier = Modifier.fillMaxWidth(), singleLine = true
+                    )
+                    OutlinedTextField(
+                        value = apellido, onValueChange = { if (it.matches(soloLetrasRegex)) apellido = it },
+                        label = { Text("Apellido") }, leadingIcon = { Icon(Icons.Default.Person, null) },
+                        modifier = Modifier.fillMaxWidth(), singleLine = true
+                    )
+                    OutlinedTextField(
+                        value = correo, onValueChange = { correo = it.trim() },
+                        label = { Text("Correo Electrónico") }, leadingIcon = { Icon(Icons.Default.Email, null) },
+                        modifier = Modifier.fillMaxWidth(), singleLine = true
+                    )
+                    OutlinedTextField(
+                        value = telefono, onValueChange = { if (it.all { c -> c.isDigit() } && it.length <= 9) telefono = it },
+                        label = { Text("Teléfono (9 dígitos)") }, leadingIcon = { Icon(Icons.Default.Phone, null) },
+                        modifier = Modifier.fillMaxWidth(), singleLine = true
+                    )
+                    OutlinedTextField(
+                        value = contrasena, onValueChange = { contrasena = it },
+                        label = { Text("Contraseña") }, leadingIcon = { Icon(Icons.Default.Lock, null) },
+                        visualTransformation = PasswordVisualTransformation(),
+                        modifier = Modifier.fillMaxWidth(), singleLine = true
+                    )
+                    OutlinedTextField(
+                        value = confirmarContrasena, onValueChange = { confirmarContrasena = it },
+                        label = { Text("Confirmar") }, leadingIcon = { Icon(Icons.Default.CheckCircle, null) },
+                        visualTransformation = PasswordVisualTransformation(),
+                        modifier = Modifier.fillMaxWidth(), singleLine = true,
+                        isError = confirmarContrasena.isNotEmpty() && contrasena != confirmarContrasena
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Button(
+                onClick = {
+                    authViewModel.registrar(nombre, apellido, correo, contrasena, telefono) { exito, mensaje ->
+                        Toast.makeText(context, mensaje, Toast.LENGTH_LONG).show()
+                        if (exito) {
+                            authViewModel.limpiarCampos()
+                            onNavigateToLogin()
+                        }
+                    }
+                },
+                enabled = formularioValido,
+                modifier = Modifier.fillMaxWidth().height(56.dp),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text("REGISTRARSE", fontWeight = FontWeight.Bold)
+            }
+
+            TextButton(onClick = { authViewModel.limpiarCampos(); onNavigateToLogin() }) {
+                Text("¿Ya tienes cuenta? Inicia sesión")
             }
         }
     }
 }
-

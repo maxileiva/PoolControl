@@ -15,7 +15,7 @@ interface UserDao {
     @Update
     suspend fun actualizarUsuario(usuario: UserEntity): Int // Devuelve 1 si tuvo éxito
 
-    @Query("SELECT * FROM users WHERE email = :email LIMIT 1")
+    @Query("SELECT * FROM users WHERE correo = :email LIMIT 1")
     suspend fun getByEmail(email: String): UserEntity?
 
     @Query("SELECT * FROM users WHERE id = :id")

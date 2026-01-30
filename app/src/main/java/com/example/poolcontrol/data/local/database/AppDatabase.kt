@@ -58,13 +58,13 @@ abstract class AppDatabase : RoomDatabase() {
                                 roles.forEach { rDao.insertar(it) }
 
                                 // 2. Insertar Usuarios Semilla
-                                val users = listOf(
+                           /*     val users = listOf(
                                     UserEntity(nombre = "Rigoberto", apellido = "Leiva", email = "admin@pool.com", password = "ADMINpool123", numero = "912345678", rolId = 1),
                                     UserEntity(nombre = "Maximiliano", apellido = "Leiva", email = "operador@pool.com", password = "OPerador123", numero = "943218765", rolId = 2),
                                     UserEntity(nombre = "Pedro", apellido = "Campos", email = "cliente@pool.com", password = "CLIente123", numero = "987343834", rolId = 3)
                                 )
                                 users.forEach { uDao.insertar(it) }
-
+*/
                                 val piscinas = listOf(
                                     PiscinaEntity(
                                         id = 1,
